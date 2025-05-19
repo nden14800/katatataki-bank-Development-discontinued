@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>肩たたき銀行 (URL共有版 - 非推奨)</title>
+    <title>肩たたき銀行</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* CSSは前回のものを流用します。変更点は少ないです。 */
+        /* --- Global Styles & Theme --- */
         :root {
             --font-family: 'Roboto', sans-serif;
             --primary-color: #007bff;
@@ -16,6 +16,8 @@
             --danger-color: #dc3545;
             --warning-color: #ffc107;
             --loader-color: var(--primary-color);
+
+            /* Light Theme */
             --bg-color: #f4f6f8;
             --text-color: #212529;
             --card-bg-color: #ffffff;
@@ -74,67 +76,245 @@
             }
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; opacity: 0; animation: fadeInContainer 0.5s ease-out forwards; }
-        @keyframes fadeInContainer { to { opacity: 1; } }
-        h1, h2 { color: var(--primary-color); margin-bottom: 0.5em; }
-        h1 { text-align: center; margin-bottom: 20px; font-weight: 700; }
-        h2 { font-weight: 500; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5em; margin-bottom: 1em; }
-        nav { display: flex; justify-content: center; margin-bottom: 30px; }
-        nav button { background-color: var(--nav-button-bg-color); color: var(--nav-button-text-color); border: none; padding: 10px 20px; margin: 0 5px; border-radius: 20px; cursor: pointer; font-family: var(--font-family); font-weight: 500; font-size: 0.9rem; }
-        nav button:hover { background-color: var(--primary-color); color: var(--button-text-color); }
-        nav button.active { background-color: var(--nav-button-active-bg-color); color: var(--nav-button-active-text-color); font-weight: 700; }
-        nav button.active:hover { background-color: var(--nav-button-active-bg-color); color: var(--nav-button-active-text-color); }
-        .form-section { background-color: var(--card-bg-color); padding: 25px; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 20px; display: none; opacity: 0; position: relative; }
-        .form-section.active-section { display: block; animation: fadeInPure 0.4s ease-out forwards; }
-        @keyframes fadeInPure { from { opacity: 0; } to { opacity: 1; } }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-color); }
-        .form-group input[type="number"], .form-group input[type="date"], .form-group input[type="password"], .form-group input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--input-border-color); border-radius: 6px; background-color: var(--input-bg-color); color: var(--text-color); font-family: var(--font-family); font-size: 1rem; }
-        .form-group input:focus { outline: none; border-color: var(--input-focus-border-color); box-shadow: var(--input-focus-box-shadow); }
-        .form-group input.input-error { border-color: var(--input-error-border-color) !important; box-shadow: var(--input-error-box-shadow) !important; }
-        button.action-button { background-color: var(--primary-color); color: var(--button-text-color); border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-family: var(--font-family); font-weight: 500; font-size: 1rem; display: block; width: 100%; margin-top: 10px; }
-        button.action-button:hover { background-color: var(--primary-hover-color); }
-        button.action-button:disabled { background-color: var(--secondary-color); cursor: not-allowed; opacity: 0.7; }
-        button.copy-button { background-color: var(--secondary-color); margin-left: 10px; padding: 8px 12px; font-size: 0.9rem; }
-        button.copy-button:hover { background-color: #5a6268; }
-        .loader-container { display: none; text-align: center; margin: 20px 0; }
-        .loader { border: 4px solid rgba(0,0,0,0.1); border-left-color: var(--loader-color); border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; display: inline-block; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .message-area { padding: 15px; margin-top: 20px; margin-bottom: 10px; border: 1px solid transparent; border-radius: 6px; opacity: 0; display: none; word-break: break-all; text-align: center; }
-        .message-area.visible { display: block; animation: fadeInPure 0.4s ease-out forwards; }
-        .message-area.message-success { background-color: var(--message-success-bg); border-color: var(--message-success-border); color: var(--message-success-text); }
-        .message-area.message-error { background-color: var(--message-error-bg); border-color: var(--message-error-border); color: var(--message-error-text); }
-        .message-area.message-info { background-color: var(--message-info-bg); border-color: var(--message-info-border); color: var(--message-info-text); }
-        #generatedSerialContainer { margin-top: 20px; padding: 15px; border-radius: 6px; opacity: 0; display: none; word-break: break-all; background-color: var(--message-info-bg); border: 1px solid var(--message-info-border); color: var(--message-info-text); }
-        #generatedSerialContainer.visible { display: block; animation: fadeInPure 0.4s ease-out forwards; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0; 
+            animation: fadeInContainer 0.5s ease-out forwards;
+        }
+        @keyframes fadeInContainer {
+            to { opacity: 1; }
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        h2 {
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        nav button {
+            background-color: var(--nav-button-bg-color);
+            color: var(--nav-button-text-color);
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        nav button:hover {
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+        }
+        nav button.active {
+            background-color: var(--nav-button-active-bg-color);
+            color: var(--nav-button-active-text-color);
+            font-weight: 700;
+        }
+        nav button.active:hover {
+             background-color: var(--nav-button-active-bg-color);
+             color: var(--nav-button-active-text-color);
+        }
+
+        .form-section {
+            background-color: var(--card-bg-color);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            display: none; 
+            opacity: 0; 
+            position: relative; 
+        }
+        .form-section.active-section {
+            display: block;
+            animation: fadeInPure 0.4s ease-out forwards;
+        }
+        @keyframes fadeInPure {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group input[type="password"],
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 6px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--input-focus-border-color);
+            box-shadow: var(--input-focus-box-shadow);
+        }
+        .form-group input.input-error {
+            border-color: var(--input-error-border-color) !important; 
+            box-shadow: var(--input-error-box-shadow) !important; 
+        }
+
+        button.action-button {
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-weight: 500;
+            font-size: 1rem;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button.action-button:hover {
+            background-color: var(--primary-hover-color);
+        }
+        button.action-button:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        button.copy-button {
+            background-color: var(--secondary-color);
+            margin-left: 10px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+        button.copy-button:hover {
+            background-color: #5a6268;
+        }
+
+        .loader-container {
+            display: none; 
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loader {
+            border: 4px solid rgba(0,0,0,0.1);
+            border-left-color: var(--loader-color);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 0.8s linear infinite; 
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message-area {
+            padding: 15px;
+            margin-top: 20px;
+            margin-bottom: 10px; 
+            border: 1px solid transparent;
+            border-radius: 6px;
+            opacity: 0;
+            display: none; 
+            word-break: break-all;
+            text-align: center;
+        }
+        .message-area.visible {
+            display: block;
+            animation: fadeInPure 0.4s ease-out forwards;
+        }
+        .message-area.message-success {
+            background-color: var(--message-success-bg);
+            border-color: var(--message-success-border);
+            color: var(--message-success-text);
+        }
+        .message-area.message-error {
+            background-color: var(--message-error-bg);
+            border-color: var(--message-error-border);
+            color: var(--message-error-text);
+        }
+        .message-area.message-info { 
+            background-color: var(--message-info-bg);
+            border-color: var(--message-info-border);
+            color: var(--message-info-text);
+        }
+
+        #generatedSerialContainer { 
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            opacity: 0; 
+            display: none; 
+            word-break: break-all;
+            background-color: var(--message-info-bg); 
+            border: 1px solid var(--message-info-border);
+            color: var(--message-info-text);
+        }
+        #generatedSerialContainer.visible {
+            display: block; 
+            animation: fadeInPure 0.4s ease-out forwards; 
+        }
         #generatedSerialContainer p { margin-bottom: 10px; }
-        .form-section.active-section .animated-item { opacity: 0; animation: fadeInPure 0.3s ease-out forwards; }
-        .fade-in-on-load { opacity: 0; animation: fadeInPure 0.5s ease-out forwards; }
-        #shareUrlContainer { margin-top: 20px; padding: 10px; background-color: var(--input-bg-color); border: 1px solid var(--border-color); border-radius: 6px; display:none; }
-        #shareUrlContainer p { margin-bottom: 5px; font-weight: 500; }
-        #shareUrlDisplay { width: 100%; padding: 8px; border: 1px solid var(--input-border-color); border-radius: 4px; background-color: var(--bg-color); color: var(--text-color); font-size: 0.9rem; word-break: break-all; margin-bottom: 10px; }
-        #copyShareUrlBtn { padding: 8px 12px; font-size: 0.9rem; }
+
+        .form-section.active-section .animated-item {
+            opacity: 0;
+            animation: fadeInPure 0.3s ease-out forwards; 
+        }
+        .fade-in-on-load {
+            opacity: 0;
+            animation: fadeInPure 0.5s ease-out forwards; 
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="fade-in-on-load">肩たたき銀行 (URL共有版 - <strong style="color:var(--danger-color)">非推奨・実験的</strong>)</h1>
-        <p style="text-align:center; margin-bottom:15px; font-size:0.9em; color: var(--warning-color);">
-            注意: このバージョンはデータをURLに含めて共有します。セキュリティリスクがあり、データが失われる可能性があります。実験的なものです。
-        </p>
+        <h1 class="fade-in-on-load">肩たたき銀行 (インメモリ版)</h1>
 
         <nav class="fade-in-on-load">
             <button id="showIssueFormBtn" class="active">券発行フォーム</button>
             <button id="showUseFormBtn">券を利用する</button>
         </nav>
-
-        <div id="shareUrlContainer" class="animated-item">
-            <p>共有用URL (このURLを他のデバイスにコピーしてください):</p>
-            <textarea id="shareUrlDisplay" rows="3" readonly></textarea>
-            <button id="copyShareUrlBtn" class="action-button copy-button">共有URLをコピー</button>
-        </div>
 
         <main>
             <!-- 券発行フォーム -->
@@ -160,7 +340,7 @@
                 <div id="generatedSerialContainer">
                     <p><strong>シリアル番号が発行されました！</strong></p>
                     <p>シリアル番号: <span id="serialNumberDisplay"></span></p>
-                    <button id="copySerialBtn" class="action-button copy-button">シリアル番号をコピー</button>
+                    <button id="copySerialBtn" class="action-button copy-button">コピー</button>
                 </div>
             </section>
 
@@ -173,7 +353,7 @@
                     <input type="text" id="useSerial" required>
                 </div>
                 <div class="form-group animated-item">
-                    <label for="usePasscode">パスコード (数字5桁):</label>
+                    <label for="usePasscode">パスコード (数字5桁):</label> <!-- 利用時も5桁を意識させる -->
                     <input type="password" id="usePasscode" maxlength="5" inputmode="numeric" required title="5桁の数字を入力してください">
                 </div>
                 <div class="loader-container" id="useLoader">
@@ -185,21 +365,19 @@
     </div>
 
     <script>
-        // --- "Database" (JavaScript Object holding all coupons) ---
-        let couponDataStore = {}; // Stores coupons by serial number
+        // --- In-Memory Database ---
+        const couponDatabase = new Map(); // MapオブジェクトをインメモリDBとして使用
 
         document.addEventListener('DOMContentLoaded', () => {
-            const shareUrlContainer = document.getElementById('shareUrlContainer');
-            const shareUrlDisplay = document.getElementById('shareUrlDisplay');
-            const copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
-
-            // --- DOM Elements (Copied from previous, ensure all are present) ---
+            // --- DOM Elements ---
             const showIssueFormBtn = document.getElementById('showIssueFormBtn');
             const showUseFormBtn = document.getElementById('showUseFormBtn');
             const issueCouponForm = document.getElementById('issueCouponForm');
             const useCouponForm = document.getElementById('useCouponForm');
+
             const issueFormMessageArea = document.getElementById('issueFormMessageArea');
             const useFormMessageArea = document.getElementById('useFormMessageArea');
+
             const issueCountInput = document.getElementById('issueCount');
             const issueExpiryInput = document.getElementById('issueExpiry');
             const issuePasscodeInput = document.getElementById('issuePasscode');
@@ -208,12 +386,15 @@
             const generatedSerialContainer = document.getElementById('generatedSerialContainer');
             const serialNumberDisplay = document.getElementById('serialNumberDisplay');
             const copySerialBtn = document.getElementById('copySerialBtn');
+
             const useSerialInput = document.getElementById('useSerial');
-            const usePasscodeInput = document.getElementById('usePasscode');
+            const usePasscodeInput = document.getElementById('usePasscode'); // 利用時のパスコード入力
             const useCouponBtn = document.getElementById('useCouponBtn');
             const useLoader = document.getElementById('useLoader');
-            const allRequiredInputs = document.querySelectorAll('input[required]');
             
+            const allRequiredInputs = document.querySelectorAll('input[required]');
+
+            // --- Initial Setup ---
             const today = new Date().toISOString().split('T')[0];
             issueExpiryInput.setAttribute('min', today);
             issueExpiryInput.value = today;
@@ -223,71 +404,24 @@
             });
             animateFormItems(issueCouponForm);
 
-            // --- URL Data Handling ---
-            function encodeDataForUrl(data) {
-                try {
-                    const jsonString = JSON.stringify(data);
-                    return btoa(encodeURIComponent(jsonString)); // URIComponent encoding + Base64
-                } catch (e) {
-                    console.error("Error encoding data:", e);
-                    return "";
-                }
-            }
 
-            function decodeDataFromUrl(encodedString) {
-                try {
-                    const jsonString = decodeURIComponent(atob(encodedString)); // Base64 decode + URIComponent decode
-                    return JSON.parse(jsonString);
-                } catch (e) {
-                    console.error("Error decoding data:", e);
-                    return null;
-                }
-            }
-
-            function updateUrlWithData() {
-                const encodedData = encodeDataForUrl(couponDataStore);
-                const baseUrl = window.location.href.split('#')[0];
-                const newUrl = encodedData ? `${baseUrl}#data=${encodedData}` : baseUrl;
-                // window.location.hash = encodedData ? `data=${encodedData}` : ""; // This causes immediate reload sometimes, better to use replaceState if not changing history
-                history.replaceState(null, '', newUrl); // Update URL without adding to history or reloading
-                
-                if (encodedData) {
-                    shareUrlDisplay.value = newUrl;
-                    shareUrlContainer.style.display = 'block';
-                } else {
-                    shareUrlContainer.style.display = 'none';
-                }
-            }
-
-            function loadDataFromUrl() {
-                if (window.location.hash && window.location.hash.startsWith('#data=')) {
-                    const encodedData = window.location.hash.substring(6); // Remove #data=
-                    const decodedData = decodeDataFromUrl(encodedData);
-                    if (decodedData && typeof decodedData === 'object') {
-                        couponDataStore = decodedData;
-                        console.log("Data loaded from URL:", couponDataStore);
-                        showSiteMessage(issueFormMessageArea, "共有URLからデータを読み込みました。", "info", 3000);
-                    } else {
-                        showSiteMessage(issueFormMessageArea, "URLのデータが不正です。", "error", 3000);
-                        couponDataStore = {}; // Reset if data is corrupt
-                    }
-                } else {
-                    couponDataStore = {}; // Initialize if no data in URL
-                }
-                updateUrlWithData(); // Initialize or update URL display
-            }
-
-
-            // --- Core Functions (Mostly from previous) ---
+            // --- Functions ---
             function switchForm(activeForm, inactiveForm, activeButton, inactiveButton) {
                 clearAllInputErrors();
-                hideSiteMessage(issueFormMessageArea); hideSiteMessage(useFormMessageArea);
+                hideSiteMessage(issueFormMessageArea);
+                hideSiteMessage(useFormMessageArea);
                 hideMessage(generatedSerialContainer);
-                activeForm.classList.add('active-section'); inactiveForm.classList.remove('active-section');
-                activeButton.classList.add('active'); inactiveButton.classList.remove('active');
+
+                activeForm.classList.add('active-section');
+                inactiveForm.classList.remove('active-section');
+                
+                activeButton.classList.add('active');
+                inactiveButton.classList.remove('active');
+
                 animateFormItems(activeForm);
             }
-            function animateFormItems(formElement) { /* ... same as before ... */ 
+
+            function animateFormItems(formElement) {
                 const items = formElement.querySelectorAll('.animated-item');
                 items.forEach((item, index) => {
                     item.style.opacity = '0'; 
@@ -298,65 +432,94 @@
                     });
                 });
             }
-            function generateSerialNumber() { return 'KTBK-URL-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase(); }
-            function showLoader(loaderElement) { loaderElement.style.display = 'block'; }
-            function hideLoader(loaderElement) { loaderElement.style.display = 'none'; }
+
+            function generateSerialNumber() {
+                return 'KTBK-IM-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
+            }
+
+            function showLoader(loaderElement) {
+                loaderElement.style.display = 'block';
+            }
+
+            function hideLoader(loaderElement) {
+                loaderElement.style.display = 'none';
+            }
+            
             let messageTimer = null; 
-            function showSiteMessage(messageElement, text, type = 'info', duration = 3000) { /* ... same as before ... */ 
+            function showSiteMessage(messageElement, text, type = 'info', duration = 3000) {
                 clearTimeout(messageTimer); 
+
                 messageElement.textContent = text;
                 messageElement.className = 'message-area'; 
                 messageElement.classList.add(`message-${type}`);
+                
                 messageElement.classList.remove('visible'); 
                 void messageElement.offsetWidth; 
                 messageElement.classList.add('visible');
+
                 if (duration > 0) {
-                    messageTimer = setTimeout(() => { hideSiteMessage(messageElement); }, duration);
+                    messageTimer = setTimeout(() => {
+                        hideSiteMessage(messageElement);
+                    }, duration);
                 }
             }
-            function hideSiteMessage(messageElement) { /* ... same as before ... */ 
+
+            function hideSiteMessage(messageElement) {
                 clearTimeout(messageTimer);
                 messageElement.classList.remove('visible');
             }
-            function displayGeneratedSerial() { /* ... same as before ... */ 
+            
+            function displayGeneratedSerial() { 
                 generatedSerialContainer.classList.remove('visible');
                 void generatedSerialContainer.offsetWidth;
                 generatedSerialContainer.classList.add('visible');
+
                 generatedSerialContainer.querySelectorAll('p, button').forEach((el, index) => {
-                    el.style.opacity = '0'; el.style.animation = 'none';
+                    el.style.opacity = '0';
+                    el.style.animation = 'none';
                     requestAnimationFrame(() => {
-                        el.style.animation = ''; el.style.animationName = 'fadeInPure'; 
-                        el.style.animationDuration = '0.3s'; el.style.animationFillMode = 'forwards';
+                        el.style.animation = '';
+                        el.style.animationName = 'fadeInPure'; 
+                        el.style.animationDuration = '0.3s';
+                        el.style.animationFillMode = 'forwards';
                         el.style.animationDelay = `${index * 0.1}s`;
                     });
                 });
             }
-            function hideMessage(element) { element.classList.remove('visible'); }
+            
+            function hideMessage(element) { 
+                element.classList.remove('visible');
+            }
 
-            // --- "Database" Functions (using couponDataStore and URL update) ---
+            // --- Database Functions (In-Memory) ---
             function saveCoupon(couponData) {
                 try {
-                    couponDataStore[couponData.serialNumber] = JSON.parse(JSON.stringify(couponData));
-                    updateUrlWithData(); // Update URL after every save
-                    console.log("Coupon saved:", couponData.serialNumber, couponDataStore[couponData.serialNumber]);
+                    // In-memory: Make a deep copy to store, to avoid direct modification issues
+                    // if the original object is modified elsewhere before another save.
+                    couponDatabase.set(couponData.serialNumber, JSON.parse(JSON.stringify(couponData)));
+                    console.log("Coupon saved to in-memory DB:", couponData.serialNumber, couponDatabase.get(couponData.serialNumber));
                     return true;
                 } catch (e) {
-                    console.error("Error saving coupon:", e);
-                    showSiteMessage(issueFormMessageArea, "データの保存に失敗しました。", "error", 5000);
+                    console.error("Error saving to in-memory DB", e);
+                    showSiteMessage(issueFormMessageArea, "データベースへの保存に失敗しました。", "error", 5000);
                     return false;
                 }
             }
 
             function getCoupon(serial) {
-                if (couponDataStore.hasOwnProperty(serial)) {
-                    console.log("Coupon retrieved:", serial);
-                    return JSON.parse(JSON.stringify(couponDataStore[serial]));
+                if (couponDatabase.has(serial)) {
+                    // Return a deep copy to prevent accidental modification of the stored object
+                    console.log("Coupon retrieved from in-memory DB:", serial);
+                    return JSON.parse(JSON.stringify(couponDatabase.get(serial)));
                 }
-                console.log("Coupon not found:", serial);
+                console.log("Coupon not found in in-memory DB:", serial);
                 return null;
             }
-            
-            function validateForm(formElement, messageDisplayElement) { /* ... mostly same as before, ensure 5-digit check is robust ... */
+            // No removeCoupon function is explicitly requested, but would be:
+            // function removeCoupon(serial) { couponDatabase.delete(serial); }
+
+
+            function validateForm(formElement, messageDisplayElement) {
                 let isValid = true;
                 let firstInvalidElement = null;
                 clearFormInputErrors(formElement); 
@@ -364,12 +527,15 @@
                 const requiredInputs = formElement.querySelectorAll('input[required]');
                 requiredInputs.forEach(input => {
                     if (!input.value.trim()) {
-                        input.classList.add('input-error'); isValid = false;
+                        input.classList.add('input-error');
+                        isValid = false;
                         if (!firstInvalidElement) firstInvalidElement = input;
                     } else {
                         input.classList.remove('input-error');
-                        if (!input.checkValidity()) { // Checks pattern too
-                             input.classList.add('input-error'); isValid = false;
+                        // HTML5 pattern validation
+                        if (!input.checkValidity()) { // This will check pattern for passcode
+                             input.classList.add('input-error');
+                             isValid = false;
                              if (!firstInvalidElement) firstInvalidElement = input;
                         }
                     }
@@ -380,137 +546,182 @@
                     let errorMessage = "すべての必須項目を正しく入力してください。";
                     if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.checkValidity()) {
                         errorMessage = "パスコードは5桁の数字で入力してください。";
-                    } else if (firstInvalidElement && firstInvalidElement.id === 'usePasscode' && (!/^\d{5}$/.test(firstInvalidElement.value) && firstInvalidElement.value.length > 0) ) {
-                         errorMessage = "パスコードは5桁の数字で入力してください。";
+                    } else if (firstInvalidElement && firstInvalidElement.id === 'usePasscode' && firstInvalidElement.value.length > 0 && firstInvalidElement.value.length < 5) {
+                        // For use form, if something is typed but not 5 digits (though pattern isn't on usePasscode by default)
+                        // We can add a specific check here if needed, or rely on user knowing it's 5 digits.
+                        // For now, the length check for usePasscode is mainly on the server/getCoupon check.
                     }
+
                     showSiteMessage(messageDisplayElement, errorMessage, "error", 3000);
                 } else {
                     hideSiteMessage(messageDisplayElement); 
                 }
                 return isValid;
             }
-            function clearFormInputErrors(formElement) { /* ... same ... */ 
-                 const inputs = formElement.querySelectorAll('input.input-error');
+
+            function clearFormInputErrors(formElement) {
+                const inputs = formElement.querySelectorAll('input.input-error');
                 inputs.forEach(input => input.classList.remove('input-error'));
             }
-            function clearAllInputErrors() { /* ... same ... */ 
+            
+            function clearAllInputErrors() {
                 allRequiredInputs.forEach(input => input.classList.remove('input-error'));
             }
-            allRequiredInputs.forEach(input => { /* ... same, with 5-digit check for usePasscode ... */
+
+            allRequiredInputs.forEach(input => {
                 input.addEventListener('input', () => {
                     if (input.value.trim()) {
                         input.classList.remove('input-error');
-                        if ((input.id === 'issuePasscode' || input.id === 'usePasscode') && input.checkValidity()) { // usePasscode might not have pattern, so this helps for issuePasscode
+                        if (input.id === 'issuePasscode' && input.checkValidity()) {
                             input.classList.remove('input-error');
                         }
-                         if (input.id === 'usePasscode' && /^\d{5}$/.test(input.value) ) {
+                         if (input.id === 'usePasscode' && input.value.length === 5 && /^\d{5}$/.test(input.value) ) { // Basic check for use form
                             input.classList.remove('input-error');
                         }
+
                         if (input.closest('form').id === 'issueCouponForm') hideSiteMessage(issueFormMessageArea);
                         if (input.closest('form').id === 'useCouponForm') hideSiteMessage(useFormMessageArea);
                     }
                 });
             });
 
+
             // --- Event Listeners ---
-            showIssueFormBtn.addEventListener('click', () => switchForm(issueCouponForm, useCouponForm, showIssueFormBtn, showUseFormBtn));
-            showUseFormBtn.addEventListener('click', () => switchForm(useCouponForm, issueCouponForm, showUseFormBtn, showIssueFormBtn));
+            showIssueFormBtn.addEventListener('click', () => {
+                switchForm(issueCouponForm, useCouponForm, showIssueFormBtn, showUseFormBtn);
+            });
+
+            showUseFormBtn.addEventListener('click', () => {
+                switchForm(useCouponForm, issueCouponForm, showUseFormBtn, showIssueFormBtn);
+            });
 
             issueCouponBtn.addEventListener('click', () => {
                 hideMessage(generatedSerialContainer); 
-                if (!validateForm(issueCouponForm, issueFormMessageArea)) return;
+                if (!validateForm(issueCouponForm, issueFormMessageArea)) {
+                    return;
+                }
 
                 const count = parseInt(issueCountInput.value);
                 const expiry = issueExpiryInput.value;
-                const passcode = issuePasscodeInput.value;
+                const passcode = issuePasscodeInput.value; // Already validated for \d{5} by validateForm
                 
-                showLoader(issueLoader); issueCouponBtn.disabled = true;
+                showLoader(issueLoader);
+                issueCouponBtn.disabled = true;
+
                 setTimeout(() => { 
                     const serialNumber = generateSerialNumber();
-                    const newCouponData = { serialNumber, initialCount: count, remainingCount: count, expires: expiry, passcode, issuedAt: new Date().toISOString() };
-                    if (saveCoupon(newCouponData)) {
+                    const couponData = {
+                        serialNumber, initialCount: count, remainingCount: count,
+                        expires: expiry, passcode: passcode, issuedAt: new Date().toISOString()
+                    };
+
+                    if (saveCoupon(couponData)) {
                         serialNumberDisplay.textContent = serialNumber;
                         displayGeneratedSerial(); 
                         showSiteMessage(issueFormMessageArea, "券が正常に発行されました。", "success", 3000);
-                        issueCountInput.value = "1"; issuePasscodeInput.value = ""; issueExpiryInput.value = today; 
+
+                        issueCountInput.value = "1";
+                        issuePasscodeInput.value = "";
+                        issueExpiryInput.value = today; 
                         clearFormInputErrors(issueCouponForm);
                     } 
-                    hideLoader(issueLoader); issueCouponBtn.disabled = false;
-                }, 500); // Reduced timeout for quicker UI update
+                    
+                    hideLoader(issueLoader);
+                    issueCouponBtn.disabled = false;
+                }, 1000);
             });
 
-            copySerialBtn.addEventListener('click', () => { /* ... same as before ... */ 
+            copySerialBtn.addEventListener('click', () => {
                 const serial = serialNumberDisplay.textContent;
                 if (navigator.clipboard && serial) {
                     navigator.clipboard.writeText(serial)
-                        .then(() => showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000))
-                        .catch(err => { console.error('コピー失敗:', err); showSiteMessage(issueFormMessageArea, "コピーに失敗。", "error", 3000); });
-                } else { /* fallback */ }
-            });
-
-            copyShareUrlBtn.addEventListener('click', () => {
-                const urlToCopy = shareUrlDisplay.value;
-                if (navigator.clipboard && urlToCopy) {
-                    navigator.clipboard.writeText(urlToCopy)
-                        .then(() => showSiteMessage(issueFormMessageArea, "共有URLをコピーしました！", "info", 2500))
-                        .catch(err => { console.error('共有URLコピー失敗:', err); showSiteMessage(issueFormMessageArea, "共有URLのコピーに失敗。", "error", 3000); });
-                } else if (urlToCopy) { /* textarea fallback */ 
+                        .then(() => {
+                            showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000);
+                        })
+                        .catch(err => {
+                            console.error('コピーに失敗しました: ', err);
+                            showSiteMessage(issueFormMessageArea, "コピーに失敗しました。", "error", 3000);
+                        });
+                } else {
                     try {
-                        shareUrlDisplay.select();
+                        const textArea = document.createElement("textarea");
+                        textArea.value = serial;
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
                         document.execCommand('copy');
-                        showSiteMessage(issueFormMessageArea, "共有URLをコピーしました！ (Fallback)", "info", 2500);
+                        document.body.removeChild(textArea);
+                        showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000);
                     } catch (err) {
-                        showSiteMessage(issueFormMessageArea, "共有URLのコピー機能が利用できません。", "error", 3000);
+                        showSiteMessage(issueFormMessageArea, "コピー機能が利用できません。", "error", 3000);
                     }
                 }
             });
 
             useCouponBtn.addEventListener('click', () => {
-                if (!validateForm(useCouponForm, useFormMessageArea)) return;
+                 // For "use" form, passcode field doesn't have a pattern, so manual check might be needed
+                 // if strict 5-digit input is desired before attempting to use.
+                 // validateForm checks for emptiness.
+                if (!validateForm(useCouponForm, useFormMessageArea)) {
+                    return;
+                }
+                
                 const serial = useSerialInput.value.trim().toUpperCase(); 
-                const passcode = usePasscodeInput.value;
+                const passcode = usePasscodeInput.value; // User input for passcode on use form
 
-                if (!/^\d{5}$/.test(passcode)) { // Explicit 5-digit check for use form
-                    showSiteMessage(useFormMessageArea, "パスコードは5桁の数字で入力してください。", "error");
-                    usePasscodeInput.classList.add('input-error'); usePasscodeInput.focus(); return;
+                // Optional: Add a specific 5-digit check for the usePasscode here if not covered by validateForm's generic check
+                if (!/^\d{5}$/.test(passcode)) {
+                    showSiteMessage(useFormMessageArea, "利用するパスコードは5桁の数字で入力してください。", "error");
+                    usePasscodeInput.classList.add('input-error');
+                    usePasscodeInput.focus();
+                    return;
                 }
 
-                showLoader(useLoader); useCouponBtn.disabled = true;
+
+                showLoader(useLoader);
+                useCouponBtn.disabled = true;
+
                 setTimeout(() => { 
-                    const coupon = getCoupon(serial);
+                    const coupon = getCoupon(serial); // Uses in-memory DB
+
                     if (!coupon) {
-                        showSiteMessage(useFormMessageArea, "S/Nの券は見つかりません。", "error");
-                        useSerialInput.classList.add('input-error'); useSerialInput.focus();
-                    } else if (coupon.passcode !== passcode) {
-                        showSiteMessage(useFormMessageArea, "パスコードが違います。", "error");
-                        usePasscodeInput.classList.add('input-error'); usePasscodeInput.focus();
+                        showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
+                        useSerialInput.classList.add('input-error'); 
+                        useSerialInput.focus();
+                    } else if (coupon.passcode !== passcode) { // Passcode is expected to be 5 digits from DB
+                        showSiteMessage(useFormMessageArea, "パスコードが間違っています。", "error");
+                        usePasscodeInput.classList.add('input-error'); 
+                        usePasscodeInput.focus();
                     } else {
-                        const todayDate = new Date(); todayDate.setHours(0,0,0,0); 
+                        const todayDate = new Date();
+                        todayDate.setHours(0, 0, 0, 0); 
                         const expiryDate = new Date(coupon.expires);
-                        if (expiryDate < todayDate) { showSiteMessage(useFormMessageArea, "有効期限切れです。", "error"); }
-                        else if (coupon.remainingCount <= 0) { showSiteMessage(useFormMessageArea, "使用済みです。", "error"); }
-                        else {
+                        
+                        if (expiryDate < todayDate) {
+                           showSiteMessage(useFormMessageArea, "この券は有効期限が切れています。", "error");
+                        } else if (coupon.remainingCount <= 0) {
+                            showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
+                        } else {
                             coupon.remainingCount--;
-                            if (saveCoupon(coupon)) {
-                                let msg = `利用しました！ 残り: ${coupon.remainingCount}回。`;
-                                if (coupon.remainingCount === 0) msg += " 全て利用済。";
-                                showSiteMessage(useFormMessageArea, msg, "success", 4000);
-                                useSerialInput.value = ""; usePasscodeInput.value = "";
+                            if (saveCoupon(coupon)) { // Updates in-memory DB
+                                let message = `肩たたき券を1回利用しました！ 残り回数: ${coupon.remainingCount}回。`;
+                                if (coupon.remainingCount === 0) {
+                                    message += " これで全ての回数を利用しました。";
+                                }
+                                showSiteMessage(useFormMessageArea, message, "success", 4000);
+                                useSerialInput.value = "";
+                                usePasscodeInput.value = "";
                                 clearFormInputErrors(useCouponForm);
-                            } else { showSiteMessage(useFormMessageArea, "更新失敗。", "error"); }
+
+                            } else {
+                                showSiteMessage(useFormMessageArea, "券の更新に失敗しました。再度お試しください。", "error");
+                            }
                         }
                     }
-                    hideLoader(useLoader); useCouponBtn.disabled = false;
-                }, 500); // Reduced timeout
+                    hideLoader(useLoader);
+                    useCouponBtn.disabled = false;
+                }, 1000);
             });
-
-            // --- Initial Load ---
-            loadDataFromUrl(); // Load data from URL on page start
-            // If you want to clear the hash after loading to prevent users from
-            // accidentally sharing an old state if they copy the URL later without new data:
-            // history.replaceState(null, '', window.location.pathname + window.location.search); 
-            // But this would prevent re-sharing the current state easily.
-            // For now, the URL always reflects the current `couponDataStore`.
 
         });
     </script>
