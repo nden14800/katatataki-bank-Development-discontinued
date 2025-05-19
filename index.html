@@ -12,6 +12,7 @@
             --primary-color: #007bff;
             --primary-hover-color: #0056b3;
             --secondary-color: #6c757d;
+            --secondary-hover-color: #5a6268; /* Added for copy button hover */
             --success-color: #28a745;
             --danger-color: #dc3545;
             --warning-color: #ffc107;
@@ -43,6 +44,7 @@
             --message-info-bg: #e6f7ff;
             --message-info-border: #91d5ff;
             --message-info-text: #0050b3;
+            --copy-button-icon-color: var(--button-text-color);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -62,6 +64,7 @@
                 --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
                 --border-color: #373b41;
                 --primary-hover-color: #0069d9;
+                --secondary-hover-color: #545b62;
                 --input-error-border-color: #f17c7c;
                 --input-error-box-shadow: 0 0 0 0.2rem rgba(241, 124, 124, 0.25);
                 --message-success-bg: #1e4628;
@@ -73,6 +76,7 @@
                 --message-info-bg: #1c3048;
                 --message-info-border: #2e5681;
                 --message-info-text: #a6cfff;
+                --copy-button-icon-color: var(--button-text-color);
             }
         }
 
@@ -208,10 +212,16 @@
             font-family: var(--font-family);
             font-weight: 500;
             font-size: 1rem;
-            display: block;
-            width: 100%;
+            display: inline-flex; /* Changed to inline-flex for icon alignment */
+            align-items: center;
+            justify-content: center;
+            width: auto; /* Reset width if previously 100% */
             margin-top: 10px;
         }
+        button.action-button.full-width { /* New class for 100% width buttons */
+            width: 100%;
+        }
+
         button.action-button:hover {
             background-color: var(--primary-hover-color);
         }
@@ -220,15 +230,34 @@
             cursor: not-allowed;
             opacity: 0.7;
         }
+        
         button.copy-button {
             background-color: var(--secondary-color);
+            padding: 8px 10px; /* Adjusted padding for icon */
+            font-size: 1rem; /* Match other action buttons if desired, or keep smaller */
+            line-height: 1; /* Helps center icon vertically if it has intrinsic line-height */
             margin-left: 10px;
-            padding: 8px 12px;
-            font-size: 0.9rem;
+        }
+        button.copy-button svg {
+            width: 20px; /* Adjust size as needed */
+            height: 20px; /* Adjust size as needed */
+            fill: var(--copy-button-icon-color); /* Use variable for icon color */
         }
         button.copy-button:hover {
-            background-color: #5a6268;
+            background-color: var(--secondary-hover-color);
         }
+        /* For the generated serial container's button layout */
+        #generatedSerialContainer .serial-actions {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        #generatedSerialContainer .serial-actions .serial-number-text {
+            flex-grow: 1;
+            margin-right: 10px;
+            word-break: break-all;
+        }
+
 
         .loader-container {
             display: none; 
@@ -286,7 +315,6 @@
             border-radius: 6px;
             opacity: 0; 
             display: none; 
-            word-break: break-all;
             background-color: var(--message-info-bg); 
             border: 1px solid var(--message-info-border);
             color: var(--message-info-text);
@@ -295,7 +323,9 @@
             display: block; 
             animation: fadeInPure 0.4s ease-out forwards; 
         }
-        #generatedSerialContainer p { margin-bottom: 10px; }
+        #generatedSerialContainer p { margin-bottom: 10px; } /* This was for the old layout */
+        #generatedSerialContainer .serial-info-text { margin-bottom: 15px; }
+
 
         .form-section.active-section .animated-item {
             opacity: 0;
@@ -336,11 +366,17 @@
                 <div class="loader-container" id="issueLoader">
                     <div class="loader"></div>
                 </div>
-                <button id="issueCouponBtn" class="action-button animated-item">発行する</button>
+                <button id="issueCouponBtn" class="action-button full-width animated-item">発行する</button>
                 <div id="generatedSerialContainer">
-                    <p><strong>シリアル番号が発行されました！</strong></p>
-                    <p>シリアル番号: <span id="serialNumberDisplay"></span></p>
-                    <button id="copySerialBtn" class="action-button copy-button">コピー</button>
+                    <p class="serial-info-text"><strong>シリアル番号が発行されました！</strong></p>
+                    <div class="serial-actions">
+                        <span class="serial-number-text" id="serialNumberDisplay"></span>
+                        <button id="copySerialBtn" class="action-button copy-button" aria-label="シリアル番号をコピー">
+                            <svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false" width="20" height="20" fill="currentColor">
+                                <g><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></g>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -359,14 +395,13 @@
                 <div class="loader-container" id="useLoader">
                     <div class="loader"></div>
                 </div>
-                <button id="useCouponBtn" class="action-button animated-item">利用する</button>
+                <button id="useCouponBtn" class="action-button full-width animated-item">利用する</button>
             </section>
         </main>
     </div>
 
     <script>
-        // NO In-Memory Database: const couponDatabase = new Map(); // This line is removed or commented out
-
+        // localStorage functions and rest of the script remains the same as previous version
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
             const showIssueFormBtn = document.getElementById('showIssueFormBtn');
@@ -433,7 +468,6 @@
             }
 
             function generateSerialNumber() {
-                // Changed prefix to distinguish from a potential in-memory version if logs are mixed
                 return 'KTBK-LS-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
             }
 
@@ -474,16 +508,14 @@
                 void generatedSerialContainer.offsetWidth;
                 generatedSerialContainer.classList.add('visible');
 
-                generatedSerialContainer.querySelectorAll('p, button').forEach((el, index) => {
-                    el.style.opacity = '0';
-                    el.style.animation = 'none';
-                    requestAnimationFrame(() => {
-                        el.style.animation = '';
-                        el.style.animationName = 'fadeInPure'; 
-                        el.style.animationDuration = '0.3s';
-                        el.style.animationFillMode = 'forwards';
-                        el.style.animationDelay = `${index * 0.1}s`;
-                    });
+                // Animate the container itself
+                generatedSerialContainer.style.opacity = '0';
+                generatedSerialContainer.style.animation = 'none';
+                 requestAnimationFrame(() => {
+                    generatedSerialContainer.style.animation = '';
+                    generatedSerialContainer.style.animationName = 'fadeInPure'; 
+                    generatedSerialContainer.style.animationDuration = '0.3s';
+                    generatedSerialContainer.style.animationFillMode = 'forwards';
                 });
             }
             
@@ -499,7 +531,6 @@
                     return true;
                 } catch (e) {
                     console.error("Error saving to localStorage", e);
-                    // Determine which message area to use based on current form or a global one
                     const activeFormMessageArea = issueCouponForm.classList.contains('active-section') ? issueFormMessageArea : useFormMessageArea;
                     showSiteMessage(activeFormMessageArea, "ローカルストレージへの保存に失敗しました。ブラウザのシークレットモードや設定を確認してください。", "error", 7000);
                     return false;
@@ -610,7 +641,7 @@
                         expires: expiry, passcode: passcode, issuedAt: new Date().toISOString()
                     };
 
-                    if (saveCoupon(couponData)) { // Uses localStorage
+                    if (saveCoupon(couponData)) { 
                         serialNumberDisplay.textContent = serialNumber;
                         displayGeneratedSerial(); 
                         showSiteMessage(issueFormMessageArea, "券が正常に発行されました。", "success", 3000);
@@ -672,7 +703,7 @@
                 useCouponBtn.disabled = true;
 
                 setTimeout(() => { 
-                    const coupon = getCoupon(serial); // Uses localStorage
+                    const coupon = getCoupon(serial); 
 
                     if (!coupon) {
                         showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
@@ -693,7 +724,7 @@
                             showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
                         } else {
                             coupon.remainingCount--;
-                            if (saveCoupon(coupon)) { // Updates localStorage
+                            if (saveCoupon(coupon)) { 
                                 let message = `肩たたき券を1回利用しました！ 残り回数: ${coupon.remainingCount}回。`;
                                 if (coupon.remainingCount === 0) {
                                     message += " これで全ての回数を利用しました。";
@@ -711,7 +742,6 @@
                     useCouponBtn.disabled = false;
                 }, 1000);
             });
-
         });
     </script>
 </body>
