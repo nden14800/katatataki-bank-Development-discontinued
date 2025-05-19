@@ -8,10 +8,10 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
-        /* CSSは前回のインメモリ版と同じなので省略します。必要であれば再度含めます。 */
-        /* ただし、h1のタイトルだけ変更しています */
-        /* --- Global Styles & Theme (ここから) --- */
+        /* CSSは前回のインメモリ版と同じなので省略します。必要であれば再度提示します。 */
+        /* ただし、Firebaseのローディングが長くなる可能性を考慮し、初期のローディング表示などを追加しても良いかもしれません。 */
         :root {
             --font-family: 'Roboto', sans-serif;
             --primary-color: #007bff;
@@ -80,7 +80,6 @@
                 --message-info-text: #a6cfff;
             }
         }
-        /* --- Global Styles & Theme (ここまで) --- */
 
         * {
             box-sizing: border-box;
@@ -106,15 +105,16 @@
             to { opacity: 1; }
         }
 
-        h1 { /* h1 のみ変更 */
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 0.5em;
+        }
+        h1 {
             text-align: center;
             margin-bottom: 20px;
             font-weight: 700;
-            color: var(--primary-color);
         }
         h2 {
-            color: var(--primary-color);
-            margin-bottom: 0.5em;
             font-weight: 500;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.5em;
@@ -371,30 +371,34 @@
 
     <script>
         // --- Firebase 初期化 ---
-        // これらの値は、ご自身のFirebaseプロジェクトの設定に置き換えてください
+        // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+        // ここにFirebaseコンソールから取得したfirebaseConfigオブジェクトを貼り付けてください
         const firebaseConfig = {
-            apiKey: "AIzaSyAo2YGsSoRlnbphHA_BqFkhb_bcEmjxvlA", // Firebaseプロジェクト設定 > 全般 > SDK の設定と構成 > CDN からコピー
-            authDomain: "katatataki-bank.firebaseapp.com",
-            projectId: "katatataki-bank",
-            storageBucket: "katatataki-bank.firebasestorage.app",
-            messagingSenderId: "53054687986",
-            appId: "1:53054687986:web:182f6898a0a77822c11e6b"
+            apiKey: "AIzaSyYOUR_API_KEY_HERE", // 例: AIzaSy...
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
         };
-
-        // Firebaseアプリを初期化
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+        
+        // Firebase Appを初期化
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore(); // Firestoreインスタンス
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements (変更なし) ---
+            // --- DOM Elements ---
             const showIssueFormBtn = document.getElementById('showIssueFormBtn');
             const showUseFormBtn = document.getElementById('showUseFormBtn');
             const issueCouponForm = document.getElementById('issueCouponForm');
             const useCouponForm = document.getElementById('useCouponForm');
+
             const issueFormMessageArea = document.getElementById('issueFormMessageArea');
             const useFormMessageArea = document.getElementById('useFormMessageArea');
+
             const issueCountInput = document.getElementById('issueCount');
             const issueExpiryInput = document.getElementById('issueExpiry');
             const issuePasscodeInput = document.getElementById('issuePasscode');
@@ -403,99 +407,139 @@
             const generatedSerialContainer = document.getElementById('generatedSerialContainer');
             const serialNumberDisplay = document.getElementById('serialNumberDisplay');
             const copySerialBtn = document.getElementById('copySerialBtn');
+
             const useSerialInput = document.getElementById('useSerial');
             const usePasscodeInput = document.getElementById('usePasscode');
             const useCouponBtn = document.getElementById('useCouponBtn');
             const useLoader = document.getElementById('useLoader');
+            
             const allRequiredInputs = document.querySelectorAll('input[required]');
 
-            // --- Initial Setup (変更なし) ---
+            // --- Initial Setup ---
             const today = new Date().toISOString().split('T')[0];
             issueExpiryInput.setAttribute('min', today);
             issueExpiryInput.value = today;
+
             document.querySelectorAll('.fade-in-on-load').forEach((el, index) => {
                 el.style.animationDelay = `${index * 0.1}s`;
             });
             animateFormItems(issueCouponForm);
 
-            // --- UI Functions (変更なし) ---
+
+            // --- Functions (UI and Utils - Same as before) ---
             function switchForm(activeForm, inactiveForm, activeButton, inactiveButton) {
                 clearAllInputErrors();
                 hideSiteMessage(issueFormMessageArea);
                 hideSiteMessage(useFormMessageArea);
                 hideMessage(generatedSerialContainer);
+
                 activeForm.classList.add('active-section');
                 inactiveForm.classList.remove('active-section');
+                
                 activeButton.classList.add('active');
                 inactiveButton.classList.remove('active');
+
                 animateFormItems(activeForm);
             }
+
             function animateFormItems(formElement) {
                 const items = formElement.querySelectorAll('.animated-item');
                 items.forEach((item, index) => {
-                    item.style.opacity = '0'; item.style.animation = 'none'; 
-                    requestAnimationFrame(() => { item.style.animation = ''; item.style.animationDelay = `${0.15 + index * 0.07}s`; });
+                    item.style.opacity = '0'; 
+                    item.style.animation = 'none'; 
+                    requestAnimationFrame(() => { 
+                        item.style.animation = ''; 
+                        item.style.animationDelay = `${0.15 + index * 0.07}s`;
+                    });
                 });
             }
+
             function generateSerialNumber() { // シリアル番号のプレフィックスを少し変更
                 return 'KTBK-FB-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
             }
-            function showLoader(loaderElement) { loaderElement.style.display = 'block'; }
-            function hideLoader(loaderElement) { loaderElement.style.display = 'none'; }
+
+            function showLoader(loaderElement) {
+                loaderElement.style.display = 'block';
+            }
+
+            function hideLoader(loaderElement) {
+                loaderElement.style.display = 'none';
+            }
+            
             let messageTimer = null; 
             function showSiteMessage(messageElement, text, type = 'info', duration = 3000) {
                 clearTimeout(messageTimer); 
+
                 messageElement.textContent = text;
                 messageElement.className = 'message-area'; 
                 messageElement.classList.add(`message-${type}`);
+                
                 messageElement.classList.remove('visible'); 
                 void messageElement.offsetWidth; 
                 messageElement.classList.add('visible');
+
                 if (duration > 0) {
-                    messageTimer = setTimeout(() => { hideSiteMessage(messageElement); }, duration);
+                    messageTimer = setTimeout(() => {
+                        hideSiteMessage(messageElement);
+                    }, duration);
                 }
             }
+
             function hideSiteMessage(messageElement) {
                 clearTimeout(messageTimer);
                 messageElement.classList.remove('visible');
             }
+            
             function displayGeneratedSerial() { 
                 generatedSerialContainer.classList.remove('visible');
                 void generatedSerialContainer.offsetWidth;
                 generatedSerialContainer.classList.add('visible');
+
                 generatedSerialContainer.querySelectorAll('p, button').forEach((el, index) => {
-                    el.style.opacity = '0'; el.style.animation = 'none';
+                    el.style.opacity = '0';
+                    el.style.animation = 'none';
                     requestAnimationFrame(() => {
-                        el.style.animation = ''; el.style.animationName = 'fadeInPure'; 
-                        el.style.animationDuration = '0.3s'; el.style.animationFillMode = 'forwards';
+                        el.style.animation = '';
+                        el.style.animationName = 'fadeInPure'; 
+                        el.style.animationDuration = '0.3s';
+                        el.style.animationFillMode = 'forwards';
                         el.style.animationDelay = `${index * 0.1}s`;
                     });
                 });
             }
-            function hideMessage(element) { element.classList.remove('visible'); }
             
-            // --- Validation Functions (変更なし) ---
+            function hideMessage(element) { 
+                element.classList.remove('visible');
+            }
+
             function validateForm(formElement, messageDisplayElement) {
-                let isValid = true; let firstInvalidElement = null;
+                let isValid = true;
+                let firstInvalidElement = null;
                 clearFormInputErrors(formElement); 
+
                 const requiredInputs = formElement.querySelectorAll('input[required]');
                 requiredInputs.forEach(input => {
                     if (!input.value.trim()) {
-                        input.classList.add('input-error'); isValid = false;
+                        input.classList.add('input-error');
+                        isValid = false;
                         if (!firstInvalidElement) firstInvalidElement = input;
                     } else {
                         input.classList.remove('input-error');
-                        if (!input.checkValidity()) {
-                             input.classList.add('input-error'); isValid = false;
+                        if (!input.checkValidity()) { 
+                             input.classList.add('input-error');
+                             isValid = false;
                              if (!firstInvalidElement) firstInvalidElement = input;
                         }
                     }
                 });
+
                 if (!isValid) {
                     if (firstInvalidElement) firstInvalidElement.focus();
                     let errorMessage = "すべての必須項目を正しく入力してください。";
                     if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.checkValidity()) {
                         errorMessage = "パスコードは5桁の数字で入力してください。";
+                    } else if (firstInvalidElement && firstInvalidElement.id === 'usePasscode' && firstInvalidElement.value.length > 0 && !/^\d{5}$/.test(firstInvalidElement.value)) {
+                         errorMessage = "パスコードは5桁の数字で入力してください。";
                     }
                     showSiteMessage(messageDisplayElement, errorMessage, "error", 3000);
                 } else {
@@ -503,19 +547,22 @@
                 }
                 return isValid;
             }
+
             function clearFormInputErrors(formElement) {
                 const inputs = formElement.querySelectorAll('input.input-error');
                 inputs.forEach(input => input.classList.remove('input-error'));
             }
+            
             function clearAllInputErrors() {
                 allRequiredInputs.forEach(input => input.classList.remove('input-error'));
             }
+
             allRequiredInputs.forEach(input => {
                 input.addEventListener('input', () => {
                     if (input.value.trim()) {
                         input.classList.remove('input-error');
-                        if ((input.id === 'issuePasscode' || input.id === 'usePasscode') && input.checkValidity()) {
-                             input.classList.remove('input-error');
+                        if ((input.id === 'issuePasscode' || input.id === 'usePasscode') && input.checkValidity()) { // usePasscodeもpatternあれば
+                            input.classList.remove('input-error');
                         }
                         if (input.closest('form').id === 'issueCouponForm') hideSiteMessage(issueFormMessageArea);
                         if (input.closest('form').id === 'useCouponForm') hideSiteMessage(useFormMessageArea);
@@ -523,16 +570,17 @@
                 });
             });
 
-            // --- Database Functions (Firestore) ---
+
+            // --- Firebase Database Functions ---
             async function saveCouponToFirestore(couponData) {
                 try {
-                    // Firestoreでは、ドキュメントIDとしてシリアル番号を使用
+                    // FirestoreではドキュメントIDをシリアル番号とする
                     await db.collection("coupons").doc(couponData.serialNumber).set(couponData);
                     console.log("Coupon saved to Firestore:", couponData.serialNumber);
                     return true;
-                } catch (error) {
-                    console.error("Error saving coupon to Firestore: ", error);
-                    showSiteMessage(issueFormMessageArea, "データベースへの保存に失敗しました: " + error.message, "error", 5000);
+                } catch (e) {
+                    console.error("Error saving to Firestore: ", e);
+                    showSiteMessage(issueFormMessageArea, "データベースへの保存に失敗しました: " + e.message, "error", 5000);
                     return false;
                 }
             }
@@ -543,15 +591,15 @@
                     const docSnap = await docRef.get();
 
                     if (docSnap.exists()) {
-                        console.log("Coupon data:", docSnap.data());
+                        console.log("Coupon retrieved from Firestore:", serial, docSnap.data());
                         return docSnap.data();
                     } else {
-                        console.log("No such coupon!");
+                        console.log("No such coupon in Firestore:", serial);
                         return null;
                     }
-                } catch (error) {
-                    console.error("Error getting coupon from Firestore: ", error);
-                    showSiteMessage(useFormMessageArea, "データベースからの券情報の取得に失敗しました。", "error", 5000);
+                } catch (e) {
+                    console.error("Error getting coupon from Firestore: ", e);
+                    showSiteMessage(useFormMessageArea, "データベースからの取得に失敗しました: " + e.message, "error", 5000);
                     return null;
                 }
             }
@@ -559,17 +607,18 @@
             async function updateCouponInFirestore(serial, updates) {
                  try {
                     await db.collection("coupons").doc(serial).update(updates);
-                    console.log("Coupon updated in Firestore:", serial);
+                    console.log("Coupon updated in Firestore:", serial, updates);
                     return true;
-                } catch (error) {
-                    console.error("Error updating coupon in Firestore: ", error);
-                    showSiteMessage(useFormMessageArea, "券情報の更新に失敗しました。", "error", 5000);
+                } catch (e) {
+                    console.error("Error updating coupon in Firestore: ", e);
+                    // Decide where to show this error, e.g., useFormMessageArea
+                    showSiteMessage(useFormMessageArea, "券の更新に失敗しました: " + e.message, "error", 5000);
                     return false;
                 }
             }
 
 
-            // --- Event Listeners (変更あり: DB操作をFirestore関数に) ---
+            // --- Event Listeners ---
             showIssueFormBtn.addEventListener('click', () => {
                 switchForm(issueCouponForm, useCouponForm, showIssueFormBtn, showUseFormBtn);
             });
@@ -578,7 +627,7 @@
                 switchForm(useCouponForm, issueCouponForm, showUseFormBtn, showIssueFormBtn);
             });
 
-            issueCouponBtn.addEventListener('click', async () => { // async追加
+            issueCouponBtn.addEventListener('click', async () => { // async here
                 hideMessage(generatedSerialContainer); 
                 if (!validateForm(issueCouponForm, issueFormMessageArea)) {
                     return;
@@ -586,23 +635,24 @@
 
                 const count = parseInt(issueCountInput.value);
                 const expiry = issueExpiryInput.value;
-                const passcode = issuePasscodeInput.value;
+                const passcode = issuePasscodeInput.value; 
                 
                 showLoader(issueLoader);
                 issueCouponBtn.disabled = true;
 
+                // Simulate some delay if needed, or directly call Firestore
+                // await new Promise(resolve => setTimeout(resolve, 500)); // Optional delay simulation
+
                 const serialNumber = generateSerialNumber();
                 const couponData = {
                     serialNumber, initialCount: count, remainingCount: count,
-                    expires: expiry, passcode: passcode, issuedAt: new Date().toISOString(),
-                    // Firestoreのタイムスタンプを使う方が良い場合もある
-                    // issuedAt: firebase.firestore.FieldValue.serverTimestamp() 
+                    expires: expiry, passcode: passcode, 
+                    issuedAt: new Date().toISOString(), // Store as ISO string
+                    // Firestore Timestamps are better for server-side ordering/querying
+                    // issuedAt: firebase.firestore.FieldValue.serverTimestamp() // if using server timestamp
                 };
 
-                // Firestoreに保存 (awaitを使用)
-                const success = await saveCouponToFirestore(couponData);
-                
-                if (success) {
+                if (await saveCouponToFirestore(couponData)) { // await here
                     serialNumberDisplay.textContent = serialNumber;
                     displayGeneratedSerial(); 
                     showSiteMessage(issueFormMessageArea, "券が正常に発行されました。", "success", 3000);
@@ -611,49 +661,75 @@
                     issuePasscodeInput.value = "";
                     issueExpiryInput.value = today; 
                     clearFormInputErrors(issueCouponForm);
-                }
-                // エラーメッセージはsaveCouponToFirestore内で表示される
+                } 
                 
                 hideLoader(issueLoader);
                 issueCouponBtn.disabled = false;
             });
 
-            copySerialBtn.addEventListener('click', () => { // 変更なし
+            copySerialBtn.addEventListener('click', () => {
                 const serial = serialNumberDisplay.textContent;
                 if (navigator.clipboard && serial) {
                     navigator.clipboard.writeText(serial)
-                        .then(() => { showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000); })
-                        .catch(err => { console.error('コピー失敗: ', err); showSiteMessage(issueFormMessageArea, "コピー失敗。", "error", 3000); });
-                } else { /* ... fallback ... */ }
+                        .then(() => {
+                            showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000);
+                        })
+                        .catch(err => {
+                            console.error('コピーに失敗しました: ', err);
+                            showSiteMessage(issueFormMessageArea, "コピーに失敗しました。", "error", 3000);
+                        });
+                } else {
+                    try {
+                        const textArea = document.createElement("textarea");
+                        textArea.value = serial;
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000);
+                    } catch (err) {
+                        showSiteMessage(issueFormMessageArea, "コピー機能が利用できません。", "error", 3000);
+                    }
+                }
             });
 
-            useCouponBtn.addEventListener('click', async () => { // async追加
+            useCouponBtn.addEventListener('click', async () => { // async here
                 if (!validateForm(useCouponForm, useFormMessageArea)) {
                     return;
                 }
                 
                 const serial = useSerialInput.value.trim().toUpperCase(); 
-                const passcode = usePasscodeInput.value;
+                const passcode = usePasscodeInput.value; 
 
-                if (!/^\d{5}$/.test(passcode)) {
-                    showSiteMessage(useFormMessageArea, "利用するパスコードは5桁の数字で入力してください。", "error");
-                    usePasscodeInput.classList.add('input-error'); usePasscodeInput.focus(); return;
+                if (!/^\d{5}$/.test(passcode)) { // Double check passcode format
+                    showSiteMessage(useFormMessageArea, "パスコードは5桁の数字で入力してください。", "error");
+                    usePasscodeInput.classList.add('input-error');
+                    usePasscodeInput.focus();
+                    return;
                 }
 
                 showLoader(useLoader);
                 useCouponBtn.disabled = true;
 
-                const coupon = await getCouponFromFirestore(serial); // Firestoreから取得
+                // await new Promise(resolve => setTimeout(resolve, 500)); // Optional delay simulation
+
+                const coupon = await getCouponFromFirestore(serial); // await here
 
                 if (!coupon) {
                     showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
-                    useSerialInput.classList.add('input-error'); useSerialInput.focus();
-                } else if (coupon.passcode !== passcode) {
+                    useSerialInput.classList.add('input-error'); 
+                    useSerialInput.focus();
+                } else if (coupon.passcode !== passcode) { 
                     showSiteMessage(useFormMessageArea, "パスコードが間違っています。", "error");
-                    usePasscodeInput.classList.add('input-error'); usePasscodeInput.focus();
+                    usePasscodeInput.classList.add('input-error'); 
+                    usePasscodeInput.focus();
                 } else {
-                    const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0); 
-                    const expiryDate = new Date(coupon.expires); // Firestoreのタイムスタンプ型なら .toDate() が必要
+                    const todayDate = new Date();
+                    todayDate.setHours(0, 0, 0, 0); 
+                    // Firestore stores dates typically as Timestamps or ISO strings.
+                    // If ISO string, convert. If Timestamp, use .toDate()
+                    const expiryDate = new Date(coupon.expires); // Assuming coupon.expires is ISO string or parsable
                     
                     if (expiryDate < todayDate) {
                        showSiteMessage(useFormMessageArea, "この券は有効期限が切れています。", "error");
@@ -661,23 +737,23 @@
                         showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
                     } else {
                         const newCount = coupon.remainingCount - 1;
-                        const updateSuccess = await updateCouponInFirestore(serial, { remainingCount: newCount });
-
-                        if (updateSuccess) {
+                        if (await updateCouponInFirestore(serial, { remainingCount: newCount })) { // await here
                             let message = `肩たたき券を1回利用しました！ 残り回数: ${newCount}回。`;
                             if (newCount === 0) {
                                 message += " これで全ての回数を利用しました。";
                             }
                             showSiteMessage(useFormMessageArea, message, "success", 4000);
-                            useSerialInput.value = ""; usePasscodeInput.value = "";
+                            useSerialInput.value = "";
+                            usePasscodeInput.value = "";
                             clearFormInputErrors(useCouponForm);
                         } 
-                        // エラーは updateCouponInFirestore 内で表示
+                        // Error is handled inside updateCouponInFirestore by showing a message
                     }
                 }
                 hideLoader(useLoader);
                 useCouponBtn.disabled = false;
             });
+
         });
     </script>
 </body>
