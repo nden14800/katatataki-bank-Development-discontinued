@@ -309,7 +309,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="fade-in-on-load">肩たたき銀行</h1>
+        <h1 class="fade-in-on-load">肩たたき銀行 (インメモリ版)</h1>
 
         <nav class="fade-in-on-load">
             <button id="showIssueFormBtn" class="active">券発行フォーム</button>
@@ -353,7 +353,7 @@
                     <input type="text" id="useSerial" required>
                 </div>
                 <div class="form-group animated-item">
-                    <label for="usePasscode">パスコード:</label>
+                    <label for="usePasscode">パスコード (数字5桁):</label> <!-- 利用時も5桁を意識させる -->
                     <input type="password" id="usePasscode" maxlength="5" inputmode="numeric" required title="5桁の数字を入力してください">
                 </div>
                 <div class="loader-container" id="useLoader">
@@ -365,10 +365,10 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- In-memory Database ---
-            const couponDatabase = new Map(); // Using Map for in-memory storage
+        // --- In-Memory Database ---
+        const couponDatabase = new Map(); // MapオブジェクトをインメモリDBとして使用
 
+        document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
             const showIssueFormBtn = document.getElementById('showIssueFormBtn');
             const showUseFormBtn = document.getElementById('showUseFormBtn');
@@ -388,7 +388,7 @@
             const copySerialBtn = document.getElementById('copySerialBtn');
 
             const useSerialInput = document.getElementById('useSerial');
-            const usePasscodeInput = document.getElementById('usePasscode'); //券利用時のパスコード入力欄
+            const usePasscodeInput = document.getElementById('usePasscode'); // 利用時のパスコード入力
             const useCouponBtn = document.getElementById('useCouponBtn');
             const useLoader = document.getElementById('useLoader');
             
@@ -408,9 +408,9 @@
             // --- Functions ---
             function switchForm(activeForm, inactiveForm, activeButton, inactiveButton) {
                 clearAllInputErrors();
-                hideSiteMessage(issueFormMessageArea); 
+                hideSiteMessage(issueFormMessageArea);
                 hideSiteMessage(useFormMessageArea);
-                hideMessage(generatedSerialContainer); 
+                hideMessage(generatedSerialContainer);
 
                 activeForm.classList.add('active-section');
                 inactiveForm.classList.remove('active-section');
@@ -491,27 +491,33 @@
                 element.classList.remove('visible');
             }
 
-            // --- Coupon Data Management (In-Memory) ---
+            // --- Database Functions (In-Memory) ---
             function saveCoupon(couponData) {
                 try {
-                    // For in-memory, we might want to clone the object to avoid direct modification issues
-                    // if the original object is mutated elsewhere, though for this simple case it's okay.
-                    couponDatabase.set(couponData.serialNumber, JSON.parse(JSON.stringify(couponData))); // Store a copy
-                    console.log("Coupon saved to in-memory DB:", couponDatabase.get(couponData.serialNumber));
+                    // In-memory: Make a deep copy to store, to avoid direct modification issues
+                    // if the original object is modified elsewhere before another save.
+                    couponDatabase.set(couponData.serialNumber, JSON.parse(JSON.stringify(couponData)));
+                    console.log("Coupon saved to in-memory DB:", couponData.serialNumber, couponDatabase.get(couponData.serialNumber));
                     return true;
                 } catch (e) {
                     console.error("Error saving to in-memory DB", e);
-                    showSiteMessage(issueFormMessageArea, "インメモリデータベースへの保存に失敗しました。", "error", 5000);
+                    showSiteMessage(issueFormMessageArea, "データベースへの保存に失敗しました。", "error", 5000);
                     return false;
                 }
             }
 
             function getCoupon(serial) {
-                const couponData = couponDatabase.get(serial);
-                console.log("Coupon retrieved from in-memory DB for serial " + serial + ":", couponData);
-                // Return a copy to prevent direct mutation of stored data
-                return couponData ? JSON.parse(JSON.stringify(couponData)) : null;
+                if (couponDatabase.has(serial)) {
+                    // Return a deep copy to prevent accidental modification of the stored object
+                    console.log("Coupon retrieved from in-memory DB:", serial);
+                    return JSON.parse(JSON.stringify(couponDatabase.get(serial)));
+                }
+                console.log("Coupon not found in in-memory DB:", serial);
+                return null;
             }
+            // No removeCoupon function is explicitly requested, but would be:
+            // function removeCoupon(serial) { couponDatabase.delete(serial); }
+
 
             function validateForm(formElement, messageDisplayElement) {
                 let isValid = true;
@@ -526,8 +532,8 @@
                         if (!firstInvalidElement) firstInvalidElement = input;
                     } else {
                         input.classList.remove('input-error');
-                        // Check pattern for passcode (both issue and use forms)
-                        if (input.type === 'password' && input.hasAttribute('pattern') && !input.checkValidity()) {
+                        // HTML5 pattern validation
+                        if (!input.checkValidity()) { // This will check pattern for passcode
                              input.classList.add('input-error');
                              isValid = false;
                              if (!firstInvalidElement) firstInvalidElement = input;
@@ -538,9 +544,14 @@
                 if (!isValid) {
                     if (firstInvalidElement) firstInvalidElement.focus();
                     let errorMessage = "すべての必須項目を正しく入力してください。";
-                    if (firstInvalidElement && firstInvalidElement.type === 'password' && firstInvalidElement.hasAttribute('pattern') && !firstInvalidElement.checkValidity()) {
-                        errorMessage = `パスコードは${firstInvalidElement.maxLength}桁の数字で入力してください。`;
+                    if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.checkValidity()) {
+                        errorMessage = "パスコードは5桁の数字で入力してください。";
+                    } else if (firstInvalidElement && firstInvalidElement.id === 'usePasscode' && firstInvalidElement.value.length > 0 && firstInvalidElement.value.length < 5) {
+                        // For use form, if something is typed but not 5 digits (though pattern isn't on usePasscode by default)
+                        // We can add a specific check here if needed, or rely on user knowing it's 5 digits.
+                        // For now, the length check for usePasscode is mainly on the server/getCoupon check.
                     }
+
                     showSiteMessage(messageDisplayElement, errorMessage, "error", 3000);
                 } else {
                     hideSiteMessage(messageDisplayElement); 
@@ -561,9 +572,13 @@
                 input.addEventListener('input', () => {
                     if (input.value.trim()) {
                         input.classList.remove('input-error');
-                        if (input.type === 'password' && input.hasAttribute('pattern') && input.checkValidity()) {
+                        if (input.id === 'issuePasscode' && input.checkValidity()) {
                             input.classList.remove('input-error');
                         }
+                         if (input.id === 'usePasscode' && input.value.length === 5 && /^\d{5}$/.test(input.value) ) { // Basic check for use form
+                            input.classList.remove('input-error');
+                        }
+
                         if (input.closest('form').id === 'issueCouponForm') hideSiteMessage(issueFormMessageArea);
                         if (input.closest('form').id === 'useCouponForm') hideSiteMessage(useFormMessageArea);
                     }
@@ -588,7 +603,7 @@
 
                 const count = parseInt(issueCountInput.value);
                 const expiry = issueExpiryInput.value;
-                const passcode = issuePasscodeInput.value;
+                const passcode = issuePasscodeInput.value; // Already validated for \d{5} by validateForm
                 
                 showLoader(issueLoader);
                 issueCouponBtn.disabled = true;
@@ -609,7 +624,7 @@
                         issuePasscodeInput.value = "";
                         issueExpiryInput.value = today; 
                         clearFormInputErrors(issueCouponForm);
-                    }
+                    } 
                     
                     hideLoader(issueLoader);
                     issueCouponBtn.disabled = false;
@@ -644,24 +659,22 @@
             });
 
             useCouponBtn.addEventListener('click', () => {
-                // Add pattern for usePasscodeInput in HTML if strict 5-digit check needed before submission logic
-                // For now, validateForm will check length if pattern is set, or we check here.
-                // The usePasscodeInput in HTML currently has maxlength="5" but not pattern="\d{5}"
-                // Let's add it to HTML and rely on validateForm for consistency.
-
+                 // For "use" form, passcode field doesn't have a pattern, so manual check might be needed
+                 // if strict 5-digit input is desired before attempting to use.
+                 // validateForm checks for emptiness.
                 if (!validateForm(useCouponForm, useFormMessageArea)) {
                     return;
                 }
-
+                
                 const serial = useSerialInput.value.trim().toUpperCase(); 
-                const passcode = usePasscodeInput.value;
+                const passcode = usePasscodeInput.value; // User input for passcode on use form
 
-                 // Additional check for use passcode length, since it doesn't have pattern in HTML for stricter validation
-                if (passcode.length !== 5 || !/^\d{5}$/.test(passcode)) {
-                     showSiteMessage(useFormMessageArea, "利用するパスコードは5桁の数字で入力してください。", "error");
-                     usePasscodeInput.classList.add('input-error');
-                     usePasscodeInput.focus();
-                     return;
+                // Optional: Add a specific 5-digit check for the usePasscode here if not covered by validateForm's generic check
+                if (!/^\d{5}$/.test(passcode)) {
+                    showSiteMessage(useFormMessageArea, "利用するパスコードは5桁の数字で入力してください。", "error");
+                    usePasscodeInput.classList.add('input-error');
+                    usePasscodeInput.focus();
+                    return;
                 }
 
 
@@ -669,13 +682,13 @@
                 useCouponBtn.disabled = true;
 
                 setTimeout(() => { 
-                    const coupon = getCoupon(serial);
+                    const coupon = getCoupon(serial); // Uses in-memory DB
 
                     if (!coupon) {
                         showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
                         useSerialInput.classList.add('input-error'); 
                         useSerialInput.focus();
-                    } else if (coupon.passcode !== passcode) {
+                    } else if (coupon.passcode !== passcode) { // Passcode is expected to be 5 digits from DB
                         showSiteMessage(useFormMessageArea, "パスコードが間違っています。", "error");
                         usePasscodeInput.classList.add('input-error'); 
                         usePasscodeInput.focus();
@@ -689,8 +702,8 @@
                         } else if (coupon.remainingCount <= 0) {
                             showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
                         } else {
-                            coupon.remainingCount--; // Modify the retrieved copy
-                            if (saveCoupon(coupon)) { // Save the modified copy back
+                            coupon.remainingCount--;
+                            if (saveCoupon(coupon)) { // Updates in-memory DB
                                 let message = `肩たたき券を1回利用しました！ 残り回数: ${coupon.remainingCount}回。`;
                                 if (coupon.remainingCount === 0) {
                                     message += " これで全ての回数を利用しました。";
