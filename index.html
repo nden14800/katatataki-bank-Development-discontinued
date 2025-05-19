@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>肩たたき銀行</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Styles & Theme --- */
+        :root {
+            --font-family: 'Roboto', sans-serif;
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --loader-color: var(--primary-color);
+
+            /* Light Theme */
+            --bg-color: #f4f6f8;
+            --text-color: #212529;
+            --card-bg-color: #ffffff;
+            --input-bg-color: #ffffff;
+            --input-border-color: #ced4da;
+            --input-focus-border-color: #80bdff;
+            --input-focus-box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            --button-text-color: #ffffff;
+            --nav-button-bg-color: #e9ecef;
+            --nav-button-text-color: var(--primary-color);
+            --nav-button-active-bg-color: var(--primary-color);
+            --nav-button-active-text-color: #ffffff;
+            --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            --border-color: #dee2e6;
+            --input-error-border-color: var(--danger-color);
+            --input-error-box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            --message-success-bg: #d4edda;
+            --message-success-border: #c3e6cb;
+            --message-success-text: #155724;
+            --message-error-bg: #f8d7da;
+            --message-error-border: #f5c6cb;
+            --message-error-text: #721c24;
+            --message-info-bg: #e6f7ff;
+            --message-info-border: #91d5ff;
+            --message-info-text: #0050b3;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1d24;
+                --text-color: #e8eaed;
+                --card-bg-color: #242830;
+                --input-bg-color: #2c3038;
+                --input-border-color: #495057;
+                --input-focus-border-color: #528ff0;
+                --input-focus-box-shadow: 0 0 0 0.2rem rgba(82, 143, 240, 0.35);
+                --loader-color: var(--primary-color);
+                --nav-button-bg-color: #2c3038;
+                --nav-button-text-color: var(--primary-color);
+                --nav-button-active-bg-color: var(--primary-color);
+                --nav-button-active-text-color: #e8eaed;
+                --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                --border-color: #373b41;
+                --primary-hover-color: #0069d9;
+                --input-error-border-color: #f17c7c;
+                --input-error-box-shadow: 0 0 0 0.2rem rgba(241, 124, 124, 0.25);
+                --message-success-bg: #1e4628;
+                --message-success-border: #2a6438;
+                --message-success-text: #c6f6d5;
+                --message-error-bg: #582c30;
+                --message-error-border: #843f44;
+                --message-error-text: #fbd9db;
+                --message-info-bg: #1c3048;
+                --message-info-border: #2e5681;
+                --message-info-text: #a6cfff;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0; 
+            animation: fadeInContainer 0.5s ease-out forwards;
+        }
+        @keyframes fadeInContainer {
+            to { opacity: 1; }
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        h2 {
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        nav button {
+            background-color: var(--nav-button-bg-color);
+            color: var(--nav-button-text-color);
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        nav button:hover {
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+        }
+        nav button.active {
+            background-color: var(--nav-button-active-bg-color);
+            color: var(--nav-button-active-text-color);
+            font-weight: 700;
+        }
+        nav button.active:hover {
+             background-color: var(--nav-button-active-bg-color);
+             color: var(--nav-button-active-text-color);
+        }
+
+        .form-section {
+            background-color: var(--card-bg-color);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            display: none; 
+            opacity: 0; 
+            position: relative; /* For positioning messages inside */
+        }
+        .form-section.active-section {
+            display: block;
+            animation: fadeInPure 0.4s ease-out forwards;
+        }
+        @keyframes fadeInPure {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group input[type="password"],
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 6px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--input-focus-border-color);
+            box-shadow: var(--input-focus-box-shadow);
+        }
+        .form-group input.input-error {
+            border-color: var(--input-error-border-color) !important; 
+            box-shadow: var(--input-error-box-shadow) !important; 
+        }
+
+        button.action-button {
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-weight: 500;
+            font-size: 1rem;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button.action-button:hover {
+            background-color: var(--primary-hover-color);
+        }
+        button.action-button:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        button.copy-button {
+            background-color: var(--secondary-color);
+            margin-left: 10px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+        button.copy-button:hover {
+            background-color: #5a6268;
+        }
+
+        .loader-container {
+            display: none; 
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loader {
+            border: 4px solid rgba(0,0,0,0.1);
+            border-left-color: var(--loader-color);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 0.8s linear infinite; 
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- General Message Area --- */
+        .message-area {
+            padding: 15px;
+            margin-top: 20px;
+            margin-bottom: 10px; /* Added margin bottom */
+            border: 1px solid transparent;
+            border-radius: 6px;
+            opacity: 0;
+            display: none; /* Controlled by JS via .visible */
+            word-break: break-all;
+            text-align: center;
+        }
+        .message-area.visible {
+            display: block;
+            animation: fadeInPure 0.4s ease-out forwards;
+        }
+        .message-area.message-success {
+            background-color: var(--message-success-bg);
+            border-color: var(--message-success-border);
+            color: var(--message-success-text);
+        }
+        .message-area.message-error {
+            background-color: var(--message-error-bg);
+            border-color: var(--message-error-border);
+            color: var(--message-error-text);
+        }
+        .message-area.message-info { /* For copy feedback, etc. */
+            background-color: var(--message-info-bg);
+            border-color: var(--message-info-border);
+            color: var(--message-info-text);
+        }
+
+
+        #generatedSerialContainer { /* Still used for specific serial layout */
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            opacity: 0; 
+            display: none; 
+            word-break: break-all;
+            background-color: var(--message-info-bg); /* Using info style */
+            border: 1px solid var(--message-info-border);
+            color: var(--message-info-text);
+        }
+        #generatedSerialContainer.visible {
+            display: block; 
+            animation: fadeInPure 0.4s ease-out forwards; 
+        }
+        #generatedSerialContainer p { margin-bottom: 10px; }
+
+
+        .form-section.active-section .animated-item {
+            opacity: 0;
+            animation: fadeInPure 0.3s ease-out forwards; 
+        }
+        .fade-in-on-load {
+            opacity: 0;
+            animation: fadeInPure 0.5s ease-out forwards; 
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="fade-in-on-load">肩たたき銀行</h1>
+
+        <nav class="fade-in-on-load">
+            <button id="showIssueFormBtn" class="active">券発行フォーム</button>
+            <button id="showUseFormBtn">券を利用する</button>
+        </nav>
+
+        <main>
+            <!-- 券発行フォーム -->
+            <section id="issueCouponForm" class="form-section active-section">
+                <h2 class="animated-item">券を発行する</h2>
+                <div class="message-area" id="issueFormMessageArea"></div> <!-- Message Area for Issue Form -->
+                <div class="form-group animated-item">
+                    <label for="issueCount">回数:</label>
+                    <input type="number" id="issueCount" min="1" value="1" required>
+                </div>
+                <div class="form-group animated-item">
+                    <label for="issueExpiry">有効期限:</label>
+                    <input type="date" id="issueExpiry" required>
+                </div>
+                <div class="form-group animated-item">
+                    <label for="issuePasscode">パスコード (数字4桁):</label>
+                    <input type="password" id="issuePasscode" maxlength="4" pattern="\d{4}" inputmode="numeric" required title="4桁の数字を入力してください">
+                </div>
+                <div class="loader-container" id="issueLoader">
+                    <div class="loader"></div>
+                </div>
+                <button id="issueCouponBtn" class="action-button animated-item">発行する</button>
+                <div id="generatedSerialContainer">
+                    <p><strong>シリアル番号が発行されました！</strong></p>
+                    <p>シリアル番号: <span id="serialNumberDisplay"></span></p>
+                    <button id="copySerialBtn" class="action-button copy-button">コピー</button>
+                </div>
+            </section>
+
+            <!-- 券を利用するフォーム -->
+            <section id="useCouponForm" class="form-section">
+                <h2 class="animated-item">券を利用する</h2>
+                <div class="message-area" id="useFormMessageArea"></div> <!-- Message Area for Use Form -->
+                <div class="form-group animated-item">
+                    <label for="useSerial">シリアル番号:</label>
+                    <input type="text" id="useSerial" required>
+                </div>
+                <div class="form-group animated-item">
+                    <label for="usePasscode">パスコード:</label>
+                    <input type="password" id="usePasscode" required>
+                </div>
+                <div class="loader-container" id="useLoader">
+                    <div class="loader"></div>
+                </div>
+                <button id="useCouponBtn" class="action-button animated-item">利用する</button>
+                <!-- <div id="useResultFeedback"> Used to be here, now replaced by useFormMessageArea
+                    <p id="useResultMessage"></p>
+                </div> -->
+            </section>
+        </main>
+        <!-- Removed #copyFeedback, will use message areas within forms or a global one if preferred -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const showIssueFormBtn = document.getElementById('showIssueFormBtn');
+            const showUseFormBtn = document.getElementById('showUseFormBtn');
+            const issueCouponForm = document.getElementById('issueCouponForm');
+            const useCouponForm = document.getElementById('useCouponForm');
+
+            // Message Areas
+            const issueFormMessageArea = document.getElementById('issueFormMessageArea');
+            const useFormMessageArea = document.getElementById('useFormMessageArea');
+
+            const issueCountInput = document.getElementById('issueCount');
+            const issueExpiryInput = document.getElementById('issueExpiry');
+            const issuePasscodeInput = document.getElementById('issuePasscode');
+            const issueCouponBtn = document.getElementById('issueCouponBtn');
+            const issueLoader = document.getElementById('issueLoader');
+            const generatedSerialContainer = document.getElementById('generatedSerialContainer');
+            const serialNumberDisplay = document.getElementById('serialNumberDisplay');
+            const copySerialBtn = document.getElementById('copySerialBtn');
+
+            const useSerialInput = document.getElementById('useSerial');
+            const usePasscodeInput = document.getElementById('usePasscode');
+            const useCouponBtn = document.getElementById('useCouponBtn');
+            const useLoader = document.getElementById('useLoader');
+            // const useResultFeedback = document.getElementById('useResultFeedback'); // Removed
+            // const useResultMessage = document.getElementById('useResultMessage'); // Removed
+
+            const allRequiredInputs = document.querySelectorAll('input[required]');
+
+            // --- Initial Setup ---
+            const today = new Date().toISOString().split('T')[0];
+            issueExpiryInput.setAttribute('min', today);
+            issueExpiryInput.value = today;
+
+            document.querySelectorAll('.fade-in-on-load').forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+            animateFormItems(issueCouponForm);
+
+
+            // --- Functions ---
+            function switchForm(activeForm, inactiveForm, activeButton, inactiveButton) {
+                clearAllInputErrors();
+                hideSiteMessage(issueFormMessageArea); // Hide messages on form switch
+                hideSiteMessage(useFormMessageArea);
+                hideMessage(generatedSerialContainer); // Hide serial if switching away
+
+                activeForm.classList.add('active-section');
+                inactiveForm.classList.remove('active-section');
+                
+                activeButton.classList.add('active');
+                inactiveButton.classList.remove('active');
+
+                animateFormItems(activeForm);
+            }
+
+            function animateFormItems(formElement) {
+                const items = formElement.querySelectorAll('.animated-item');
+                items.forEach((item, index) => {
+                    item.style.opacity = '0'; 
+                    item.style.animation = 'none'; 
+                    requestAnimationFrame(() => { 
+                        item.style.animation = ''; 
+                        item.style.animationDelay = `${0.15 + index * 0.07}s`;
+                    });
+                });
+            }
+
+            function generateSerialNumber() {
+                return 'KTBK-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
+            }
+
+            function showLoader(loaderElement) {
+                loaderElement.style.display = 'block';
+            }
+
+            function hideLoader(loaderElement) {
+                loaderElement.style.display = 'none';
+            }
+            
+            let messageTimer = null; 
+            function showSiteMessage(messageElement, text, type = 'info', duration = 3000) {
+                clearTimeout(messageTimer); // Clear any existing timer
+
+                messageElement.textContent = text;
+                messageElement.className = 'message-area'; // Reset classes
+                messageElement.classList.add(`message-${type}`);
+                
+                messageElement.classList.remove('visible'); // For re-triggering animation
+                void messageElement.offsetWidth; // Trigger reflow
+                messageElement.classList.add('visible');
+
+                if (duration > 0) {
+                    messageTimer = setTimeout(() => {
+                        hideSiteMessage(messageElement);
+                    }, duration);
+                }
+            }
+
+            function hideSiteMessage(messageElement) {
+                clearTimeout(messageTimer);
+                messageElement.classList.remove('visible');
+                // Optional: truly hide after animation if not display:none by default
+                // setTimeout(() => { if(!messageElement.classList.contains('visible')) messageElement.style.display = 'none'; }, 400);
+            }
+            
+            // Wrapper for old displayMessage, now deprecated or specialized
+            function displayGeneratedSerial() { // Specific for serial, uses its own container
+                generatedSerialContainer.classList.remove('visible');
+                void generatedSerialContainer.offsetWidth;
+                generatedSerialContainer.classList.add('visible');
+
+                generatedSerialContainer.querySelectorAll('p, button').forEach((el, index) => {
+                    el.style.opacity = '0';
+                    el.style.animation = 'none';
+                    requestAnimationFrame(() => {
+                        el.style.animation = '';
+                        el.style.animationName = 'fadeInPure'; 
+                        el.style.animationDuration = '0.3s';
+                        el.style.animationFillMode = 'forwards';
+                        el.style.animationDelay = `${index * 0.1}s`;
+                    });
+                });
+            }
+            
+            function hideMessage(element) { // Generic hide for elements like generatedSerialContainer
+                element.classList.remove('visible');
+            }
+
+
+            function saveCoupon(couponData) {
+                try {
+                    localStorage.setItem(couponData.serialNumber, JSON.stringify(couponData));
+                    return true;
+                } catch (e) {
+                    console.error("Error saving to localStorage", e);
+                    showSiteMessage(issueFormMessageArea, "ローカルストレージへの保存に失敗しました。", "error", 5000);
+                    return false;
+                }
+            }
+
+            function getCoupon(serial) {
+                const couponString = localStorage.getItem(serial);
+                return couponString ? JSON.parse(couponString) : null;
+            }
+
+            function validateForm(formElement, messageDisplayElement) {
+                let isValid = true;
+                let firstInvalidElement = null;
+                clearFormInputErrors(formElement); 
+
+                const requiredInputs = formElement.querySelectorAll('input[required]');
+                requiredInputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.classList.add('input-error');
+                        isValid = false;
+                        if (!firstInvalidElement) firstInvalidElement = input;
+                    } else {
+                        input.classList.remove('input-error');
+                        if (!input.checkValidity() && input.id === 'issuePasscode') {
+                             input.classList.add('input-error');
+                             isValid = false;
+                             if (!firstInvalidElement) firstInvalidElement = input;
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    if (firstInvalidElement) firstInvalidElement.focus();
+                    let errorMessage = "すべての必須項目を正しく入力してください。";
+                    if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.value.trim()) {
+                        // Passcode is empty
+                    } else if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.checkValidity()) {
+                        errorMessage = "パスコードは4桁の数字で入力してください。";
+                    }
+                    showSiteMessage(messageDisplayElement, errorMessage, "error", 3000);
+                } else {
+                    hideSiteMessage(messageDisplayElement); // Clear previous error messages if valid
+                }
+                return isValid;
+            }
+
+            function clearFormInputErrors(formElement) {
+                const inputs = formElement.querySelectorAll('input.input-error');
+                inputs.forEach(input => input.classList.remove('input-error'));
+            }
+            
+            function clearAllInputErrors() {
+                allRequiredInputs.forEach(input => input.classList.remove('input-error'));
+            }
+
+            allRequiredInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.value.trim()) {
+                        input.classList.remove('input-error');
+                        if (input.id === 'issuePasscode' && input.checkValidity()) {
+                            input.classList.remove('input-error');
+                        }
+                        // Optionally hide form-specific error message on input
+                        if (input.closest('form').id === 'issueCouponForm') hideSiteMessage(issueFormMessageArea);
+                        if (input.closest('form').id === 'useCouponForm') hideSiteMessage(useFormMessageArea);
+
+                    }
+                });
+            });
+
+
+            // --- Event Listeners ---
+            showIssueFormBtn.addEventListener('click', () => {
+                switchForm(issueCouponForm, useCouponForm, showIssueFormBtn, showUseFormBtn);
+            });
+
+            showUseFormBtn.addEventListener('click', () => {
+                switchForm(useCouponForm, issueCouponForm, showUseFormBtn, showIssueFormBtn);
+            });
+
+            issueCouponBtn.addEventListener('click', () => {
+                hideMessage(generatedSerialContainer); // Hide previous serial if any
+                if (!validateForm(issueCouponForm, issueFormMessageArea)) {
+                    return;
+                }
+
+                const count = parseInt(issueCountInput.value);
+                const expiry = issueExpiryInput.value;
+                const passcode = issuePasscodeInput.value;
+                
+                showLoader(issueLoader);
+                issueCouponBtn.disabled = true;
+
+                setTimeout(() => { 
+                    const serialNumber = generateSerialNumber();
+                    const couponData = {
+                        serialNumber, initialCount: count, remainingCount: count,
+                        expires: expiry, passcode: passcode, issuedAt: new Date().toISOString()
+                    };
+
+                    if (saveCoupon(couponData)) {
+                        serialNumberDisplay.textContent = serialNumber;
+                        displayGeneratedSerial(); // Use specialized function for this
+                        showSiteMessage(issueFormMessageArea, "券が正常に発行されました。", "success", 3000);
+
+                        issueCountInput.value = "1";
+                        issuePasscodeInput.value = "";
+                        issueExpiryInput.value = today; 
+                        clearFormInputErrors(issueCouponForm);
+                    } else {
+                         // saveCoupon already shows an error via showSiteMessage
+                    }
+                    
+                    hideLoader(issueLoader);
+                    issueCouponBtn.disabled = false;
+                }, 1000);
+            });
+
+            copySerialBtn.addEventListener('click', () => {
+                const serial = serialNumberDisplay.textContent;
+                if (navigator.clipboard && serial) {
+                    navigator.clipboard.writeText(serial)
+                        .then(() => {
+                            showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000);
+                        })
+                        .catch(err => {
+                            console.error('コピーに失敗しました: ', err);
+                            showSiteMessage(issueFormMessageArea, "コピーに失敗しました。", "error", 3000);
+                        });
+                } else {
+                    try {
+                        const textArea = document.createElement("textarea");
+                        textArea.value = serial;
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        showSiteMessage(issueFormMessageArea, "シリアル番号をコピーしました！", "info", 2000);
+                    } catch (err) {
+                        showSiteMessage(issueFormMessageArea, "コピー機能が利用できません。", "error", 3000);
+                    }
+                }
+            });
+
+            useCouponBtn.addEventListener('click', () => {
+                if (!validateForm(useCouponForm, useFormMessageArea)) {
+                    // validateForm already shows a message and focuses
+                    return;
+                }
+
+                const serial = useSerialInput.value.trim().toUpperCase(); 
+                const passcode = usePasscodeInput.value;
+
+                showLoader(useLoader);
+                useCouponBtn.disabled = true;
+
+                setTimeout(() => { 
+                    const coupon = getCoupon(serial);
+
+                    if (!coupon) {
+                        showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
+                        useSerialInput.classList.add('input-error'); 
+                        useSerialInput.focus();
+                    } else if (coupon.passcode !== passcode) {
+                        showSiteMessage(useFormMessageArea, "パスコードが間違っています。", "error");
+                        usePasscodeInput.classList.add('input-error'); 
+                        usePasscodeInput.focus();
+                    } else {
+                        const todayDate = new Date();
+                        todayDate.setHours(0, 0, 0, 0); 
+                        const expiryDate = new Date(coupon.expires);
+                        
+                        if (expiryDate < todayDate) {
+                           showSiteMessage(useFormMessageArea, "この券は有効期限が切れています。", "error");
+                        } else if (coupon.remainingCount <= 0) {
+                            showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
+                        } else {
+                            coupon.remainingCount--;
+                            if (saveCoupon(coupon)) { // Note: saveCoupon's error message goes to issueFormMessageArea
+                                let message = `肩たたき券を1回利用しました！ 残り回数: ${coupon.remainingCount}回。`;
+                                if (coupon.remainingCount === 0) {
+                                    message += " これで全ての回数を利用しました。";
+                                }
+                                showSiteMessage(useFormMessageArea, message, "success", 4000);
+                                useSerialInput.value = "";
+                                usePasscodeInput.value = "";
+                                clearFormInputErrors(useCouponForm);
+
+                            } else {
+                                showSiteMessage(useFormMessageArea, "券の更新に失敗しました。再度お試しください。", "error");
+                            }
+                        }
+                    }
+                    hideLoader(useLoader);
+                    useCouponBtn.disabled = false;
+                }, 1000);
+            });
+
+        });
+    </script>
+</body>
+</html>
