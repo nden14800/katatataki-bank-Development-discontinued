@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>肩たたき銀行</title>
+    <title>肩たたき銀行 (Firebase版)</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* CSSは変更なしなので省略します。前回のコードのCSSをそのまま使用してください。 */
         /* --- Global Styles & Theme --- */
         :root {
             --font-family: 'Roboto', sans-serif;
@@ -309,7 +310,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="fade-in-on-load">肩たたき銀行 (インメモリ版)</h1>
+        <h1 class="fade-in-on-load">肩たたき銀行 (Firebase版)</h1>
 
         <nav class="fade-in-on-load">
             <button id="showIssueFormBtn" class="active">券発行フォーム</button>
@@ -353,7 +354,7 @@
                     <input type="text" id="useSerial" required>
                 </div>
                 <div class="form-group animated-item">
-                    <label for="usePasscode">パスコード (数字5桁):</label> <!-- 利用時も5桁を意識させる -->
+                    <label for="usePasscode">パスコード (数字5桁):</label>
                     <input type="password" id="usePasscode" maxlength="5" inputmode="numeric" required title="5桁の数字を入力してください">
                 </div>
                 <div class="loader-container" id="useLoader">
@@ -364,12 +365,32 @@
         </main>
     </div>
 
+    <!-- Firebase SDK -->
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <script>
-        // --- In-Memory Database ---
-        const couponDatabase = new Map(); // MapオブジェクトをインメモリDBとして使用
+        // --- Firebase Configuration ---
+        // Replace with your actual Firebase project configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(); // Firestore database instance
+        const couponsCollection = db.collection("coupons"); // 'coupons'というコレクション（テーブルのようなもの）を参照
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
+            // DOM要素の取得などは変更なしなので省略
+            // ... (前回のコードのDOM要素取得部分をここに記述) ...
             const showIssueFormBtn = document.getElementById('showIssueFormBtn');
             const showUseFormBtn = document.getElementById('showUseFormBtn');
             const issueCouponForm = document.getElementById('issueCouponForm');
@@ -388,13 +409,12 @@
             const copySerialBtn = document.getElementById('copySerialBtn');
 
             const useSerialInput = document.getElementById('useSerial');
-            const usePasscodeInput = document.getElementById('usePasscode'); // 利用時のパスコード入力
+            const usePasscodeInput = document.getElementById('usePasscode'); 
             const useCouponBtn = document.getElementById('useCouponBtn');
             const useLoader = document.getElementById('useLoader');
             
             const allRequiredInputs = document.querySelectorAll('input[required]');
-
-            // --- Initial Setup ---
+            
             const today = new Date().toISOString().split('T')[0];
             issueExpiryInput.setAttribute('min', today);
             issueExpiryInput.value = today;
@@ -405,7 +425,8 @@
             animateFormItems(issueCouponForm);
 
 
-            // --- Functions ---
+            // UI制御関数 (switchForm, animateFormItems, showLoader, hideLoader, showSiteMessage, etc.) は変更なしなので省略
+            // ... (前回のコードのUI制御関数をここに記述) ...
             function switchForm(activeForm, inactiveForm, activeButton, inactiveButton) {
                 clearAllInputErrors();
                 hideSiteMessage(issueFormMessageArea);
@@ -433,8 +454,8 @@
                 });
             }
 
-            function generateSerialNumber() {
-                return 'KTBK-IM-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
+            function generateSerialNumber() { // シリアル番号生成ロジックはそのまま
+                return 'KTBK-FS-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
             }
 
             function showLoader(loaderElement) {
@@ -490,36 +511,7 @@
             function hideMessage(element) { 
                 element.classList.remove('visible');
             }
-
-            // --- Database Functions (In-Memory) ---
-            function saveCoupon(couponData) {
-                try {
-                    // In-memory: Make a deep copy to store, to avoid direct modification issues
-                    // if the original object is modified elsewhere before another save.
-                    couponDatabase.set(couponData.serialNumber, JSON.parse(JSON.stringify(couponData)));
-                    console.log("Coupon saved to in-memory DB:", couponData.serialNumber, couponDatabase.get(couponData.serialNumber));
-                    return true;
-                } catch (e) {
-                    console.error("Error saving to in-memory DB", e);
-                    showSiteMessage(issueFormMessageArea, "データベースへの保存に失敗しました。", "error", 5000);
-                    return false;
-                }
-            }
-
-            function getCoupon(serial) {
-                if (couponDatabase.has(serial)) {
-                    // Return a deep copy to prevent accidental modification of the stored object
-                    console.log("Coupon retrieved from in-memory DB:", serial);
-                    return JSON.parse(JSON.stringify(couponDatabase.get(serial)));
-                }
-                console.log("Coupon not found in in-memory DB:", serial);
-                return null;
-            }
-            // No removeCoupon function is explicitly requested, but would be:
-            // function removeCoupon(serial) { couponDatabase.delete(serial); }
-
-
-            function validateForm(formElement, messageDisplayElement) {
+             function validateForm(formElement, messageDisplayElement) {
                 let isValid = true;
                 let firstInvalidElement = null;
                 clearFormInputErrors(formElement); 
@@ -532,8 +524,7 @@
                         if (!firstInvalidElement) firstInvalidElement = input;
                     } else {
                         input.classList.remove('input-error');
-                        // HTML5 pattern validation
-                        if (!input.checkValidity()) { // This will check pattern for passcode
+                        if (!input.checkValidity()) { 
                              input.classList.add('input-error');
                              isValid = false;
                              if (!firstInvalidElement) firstInvalidElement = input;
@@ -546,12 +537,9 @@
                     let errorMessage = "すべての必須項目を正しく入力してください。";
                     if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.checkValidity()) {
                         errorMessage = "パスコードは5桁の数字で入力してください。";
-                    } else if (firstInvalidElement && firstInvalidElement.id === 'usePasscode' && firstInvalidElement.value.length > 0 && firstInvalidElement.value.length < 5) {
-                        // For use form, if something is typed but not 5 digits (though pattern isn't on usePasscode by default)
-                        // We can add a specific check here if needed, or rely on user knowing it's 5 digits.
-                        // For now, the length check for usePasscode is mainly on the server/getCoupon check.
+                    } else if (firstInvalidElement && firstInvalidElement.id === 'usePasscode' && (firstInvalidElement.value.length > 0 && !/^\d{5}$/.test(firstInvalidElement.value))) {
+                        errorMessage = "パスコードは5桁の数字で入力してください。";
                     }
-
                     showSiteMessage(messageDisplayElement, errorMessage, "error", 3000);
                 } else {
                     hideSiteMessage(messageDisplayElement); 
@@ -572,13 +560,9 @@
                 input.addEventListener('input', () => {
                     if (input.value.trim()) {
                         input.classList.remove('input-error');
-                        if (input.id === 'issuePasscode' && input.checkValidity()) {
+                        if ((input.id === 'issuePasscode' || input.id === 'usePasscode') && input.checkValidity()) {
                             input.classList.remove('input-error');
                         }
-                         if (input.id === 'usePasscode' && input.value.length === 5 && /^\d{5}$/.test(input.value) ) { // Basic check for use form
-                            input.classList.remove('input-error');
-                        }
-
                         if (input.closest('form').id === 'issueCouponForm') hideSiteMessage(issueFormMessageArea);
                         if (input.closest('form').id === 'useCouponForm') hideSiteMessage(useFormMessageArea);
                     }
@@ -586,52 +570,77 @@
             });
 
 
-            // --- Event Listeners ---
-            showIssueFormBtn.addEventListener('click', () => {
-                switchForm(issueCouponForm, useCouponForm, showIssueFormBtn, showUseFormBtn);
-            });
+            // --- Firestore Database Functions ---
+            async function saveCoupon(couponData) {
+                try {
+                    // Firestoreでは、ドキュメントIDをシリアル番号として設定
+                    await couponsCollection.doc(couponData.serialNumber).set(couponData);
+                    console.log("Coupon saved to Firestore:", couponData.serialNumber);
+                    return true;
+                } catch (error) {
+                    console.error("Error saving coupon to Firestore: ", error);
+                    showSiteMessage(issueFormMessageArea, "データベースへの保存に失敗しました。", "error", 5000);
+                    return false;
+                }
+            }
 
-            showUseFormBtn.addEventListener('click', () => {
-                switchForm(useCouponForm, issueCouponForm, showUseFormBtn, showIssueFormBtn);
-            });
+            async function getCoupon(serial) {
+                try {
+                    const doc = await couponsCollection.doc(serial).get();
+                    if (doc.exists) {
+                        console.log("Coupon retrieved from Firestore:", serial);
+                        return doc.data(); // ドキュメントのデータを返す
+                    } else {
+                        console.log("No such coupon in Firestore:", serial);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("Error getting coupon from Firestore: ", error);
+                    showSiteMessage(useFormMessageArea, "データベースからの読み取りに失敗しました。", "error", 5000);
+                    return null;
+                }
+            }
 
-            issueCouponBtn.addEventListener('click', () => {
-                hideMessage(generatedSerialContainer); 
+            // Event Listeners (主要ロジック)
+
+            issueCouponBtn.addEventListener('click', async () => { // asyncに変更
+                hideMessage(generatedSerialContainer);
                 if (!validateForm(issueCouponForm, issueFormMessageArea)) {
                     return;
                 }
 
                 const count = parseInt(issueCountInput.value);
                 const expiry = issueExpiryInput.value;
-                const passcode = issuePasscodeInput.value; // Already validated for \d{5} by validateForm
-                
+                const passcode = issuePasscodeInput.value;
+
                 showLoader(issueLoader);
                 issueCouponBtn.disabled = true;
 
-                setTimeout(() => { 
-                    const serialNumber = generateSerialNumber();
-                    const couponData = {
-                        serialNumber, initialCount: count, remainingCount: count,
-                        expires: expiry, passcode: passcode, issuedAt: new Date().toISOString()
-                    };
+                // Firestoreへの保存は非同期なので、setTimeoutは不要 (実際はネットワーク遅延がある)
+                const serialNumber = generateSerialNumber();
+                const couponData = {
+                    serialNumber, initialCount: count, remainingCount: count,
+                    expires: expiry, passcode: passcode, 
+                    issuedAt: firebase.firestore.Timestamp.fromDate(new Date()) // FirestoreのTimestamp型を使用
+                };
 
-                    if (saveCoupon(couponData)) {
-                        serialNumberDisplay.textContent = serialNumber;
-                        displayGeneratedSerial(); 
-                        showSiteMessage(issueFormMessageArea, "券が正常に発行されました。", "success", 3000);
+                if (await saveCoupon(couponData)) { // awaitで待機
+                    serialNumberDisplay.textContent = serialNumber;
+                    displayGeneratedSerial();
+                    showSiteMessage(issueFormMessageArea, "券が正常に発行されました。", "success", 3000);
 
-                        issueCountInput.value = "1";
-                        issuePasscodeInput.value = "";
-                        issueExpiryInput.value = today; 
-                        clearFormInputErrors(issueCouponForm);
-                    } 
-                    
-                    hideLoader(issueLoader);
-                    issueCouponBtn.disabled = false;
-                }, 1000);
+                    issueCountInput.value = "1";
+                    issuePasscodeInput.value = "";
+                    issueExpiryInput.value = today;
+                    clearFormInputErrors(issueCouponForm);
+                }
+                
+                hideLoader(issueLoader);
+                issueCouponBtn.disabled = false;
             });
-
+            
             copySerialBtn.addEventListener('click', () => {
+                // コピーロジックは変更なし
                 const serial = serialNumberDisplay.textContent;
                 if (navigator.clipboard && serial) {
                     navigator.clipboard.writeText(serial)
@@ -658,71 +667,71 @@
                 }
             });
 
-            useCouponBtn.addEventListener('click', () => {
-                 // For "use" form, passcode field doesn't have a pattern, so manual check might be needed
-                 // if strict 5-digit input is desired before attempting to use.
-                 // validateForm checks for emptiness.
+
+            useCouponBtn.addEventListener('click', async () => { // asyncに変更
                 if (!validateForm(useCouponForm, useFormMessageArea)) {
                     return;
                 }
-                
-                const serial = useSerialInput.value.trim().toUpperCase(); 
-                const passcode = usePasscodeInput.value; // User input for passcode on use form
+                 const serial = useSerialInput.value.trim().toUpperCase(); 
+                const passcode = usePasscodeInput.value;
 
-                // Optional: Add a specific 5-digit check for the usePasscode here if not covered by validateForm's generic check
-                if (!/^\d{5}$/.test(passcode)) {
+                if (!/^\d{5}$/.test(passcode)) { // 利用時も5桁チェック
                     showSiteMessage(useFormMessageArea, "利用するパスコードは5桁の数字で入力してください。", "error");
                     usePasscodeInput.classList.add('input-error');
                     usePasscodeInput.focus();
                     return;
                 }
 
-
                 showLoader(useLoader);
                 useCouponBtn.disabled = true;
 
-                setTimeout(() => { 
-                    const coupon = getCoupon(serial); // Uses in-memory DB
+                const coupon = await getCoupon(serial); // awaitで待機
 
-                    if (!coupon) {
-                        showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
-                        useSerialInput.classList.add('input-error'); 
-                        useSerialInput.focus();
-                    } else if (coupon.passcode !== passcode) { // Passcode is expected to be 5 digits from DB
-                        showSiteMessage(useFormMessageArea, "パスコードが間違っています。", "error");
-                        usePasscodeInput.classList.add('input-error'); 
-                        usePasscodeInput.focus();
+                if (!coupon) {
+                    showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
+                    useSerialInput.classList.add('input-error');
+                    useSerialInput.focus();
+                } else if (coupon.passcode !== passcode) {
+                    showSiteMessage(useFormMessageArea, "パスコードが間違っています。", "error");
+                    usePasscodeInput.classList.add('input-error');
+                    usePasscodeInput.focus();
+                } else {
+                    const todayDate = new Date();
+                    todayDate.setHours(0, 0, 0, 0);
+                    // FirestoreのTimestampオブジェクトをDateオブジェクトに変換して比較
+                    const expiryDate = coupon.expires.toDate(); 
+
+                    if (expiryDate < todayDate) {
+                        showSiteMessage(useFormMessageArea, "この券は有効期限が切れています。", "error");
+                    } else if (coupon.remainingCount <= 0) {
+                        showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
                     } else {
-                        const todayDate = new Date();
-                        todayDate.setHours(0, 0, 0, 0); 
-                        const expiryDate = new Date(coupon.expires);
-                        
-                        if (expiryDate < todayDate) {
-                           showSiteMessage(useFormMessageArea, "この券は有効期限が切れています。", "error");
-                        } else if (coupon.remainingCount <= 0) {
-                            showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
-                        } else {
-                            coupon.remainingCount--;
-                            if (saveCoupon(coupon)) { // Updates in-memory DB
-                                let message = `肩たたき券を1回利用しました！ 残り回数: ${coupon.remainingCount}回。`;
-                                if (coupon.remainingCount === 0) {
-                                    message += " これで全ての回数を利用しました。";
-                                }
-                                showSiteMessage(useFormMessageArea, message, "success", 4000);
-                                useSerialInput.value = "";
-                                usePasscodeInput.value = "";
-                                clearFormInputErrors(useCouponForm);
-
-                            } else {
-                                showSiteMessage(useFormMessageArea, "券の更新に失敗しました。再度お試しください。", "error");
+                        const updatedCouponData = { ...coupon, remainingCount: coupon.remainingCount - 1 };
+                        if (await saveCoupon(updatedCouponData)) { // Firestoreに更新を保存
+                            let message = `肩たたき券を1回利用しました！ 残り回数: ${updatedCouponData.remainingCount}回。`;
+                            if (updatedCouponData.remainingCount === 0) {
+                                message += " これで全ての回数を利用しました。";
                             }
+                            showSiteMessage(useFormMessageArea, message, "success", 4000);
+                            useSerialInput.value = "";
+                            usePasscodeInput.value = "";
+                            clearFormInputErrors(useCouponForm);
+                        } else {
+                            showSiteMessage(useFormMessageArea, "券の更新に失敗しました。再度お試しください。", "error");
                         }
                     }
-                    hideLoader(useLoader);
-                    useCouponBtn.disabled = false;
-                }, 1000);
+                }
+                hideLoader(useLoader);
+                useCouponBtn.disabled = false;
+            });
+             // ナビゲーションボタンのイベントリスナーは変更なし
+            showIssueFormBtn.addEventListener('click', () => {
+                switchForm(issueCouponForm, useCouponForm, showIssueFormBtn, showUseFormBtn);
             });
 
+            showUseFormBtn.addEventListener('click', () => {
+                switchForm(useCouponForm, issueCouponForm, showUseFormBtn, showIssueFormBtn);
+            });
         });
     </script>
 </body>
