@@ -155,7 +155,7 @@
             margin-bottom: 20px;
             display: none; 
             opacity: 0; 
-            position: relative; 
+            position: relative; /* For positioning messages inside */
         }
         .form-section.active-section {
             display: block;
@@ -249,14 +249,15 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* --- General Message Area --- */
         .message-area {
             padding: 15px;
             margin-top: 20px;
-            margin-bottom: 10px; 
+            margin-bottom: 10px; /* Added margin bottom */
             border: 1px solid transparent;
             border-radius: 6px;
             opacity: 0;
-            display: none; 
+            display: none; /* Controlled by JS via .visible */
             word-break: break-all;
             text-align: center;
         }
@@ -274,20 +275,21 @@
             border-color: var(--message-error-border);
             color: var(--message-error-text);
         }
-        .message-area.message-info { 
+        .message-area.message-info { /* For copy feedback, etc. */
             background-color: var(--message-info-bg);
             border-color: var(--message-info-border);
             color: var(--message-info-text);
         }
 
-        #generatedSerialContainer { 
+
+        #generatedSerialContainer { /* Still used for specific serial layout */
             margin-top: 20px;
             padding: 15px;
             border-radius: 6px;
             opacity: 0; 
             display: none; 
             word-break: break-all;
-            background-color: var(--message-info-bg); 
+            background-color: var(--message-info-bg); /* Using info style */
             border: 1px solid var(--message-info-border);
             color: var(--message-info-text);
         }
@@ -297,6 +299,7 @@
         }
         #generatedSerialContainer p { margin-bottom: 10px; }
 
+
         .form-section.active-section .animated-item {
             opacity: 0;
             animation: fadeInPure 0.3s ease-out forwards; 
@@ -305,11 +308,12 @@
             opacity: 0;
             animation: fadeInPure 0.5s ease-out forwards; 
         }
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="fade-in-on-load">肩たたき銀行 (インメモリ版)</h1>
+        <h1 class="fade-in-on-load">肩たたき銀行</h1>
 
         <nav class="fade-in-on-load">
             <button id="showIssueFormBtn" class="active">券発行フォーム</button>
@@ -320,7 +324,7 @@
             <!-- 券発行フォーム -->
             <section id="issueCouponForm" class="form-section active-section">
                 <h2 class="animated-item">券を発行する</h2>
-                <div class="message-area" id="issueFormMessageArea"></div> 
+                <div class="message-area" id="issueFormMessageArea"></div> <!-- Message Area for Issue Form -->
                 <div class="form-group animated-item">
                     <label for="issueCount">回数:</label>
                     <input type="number" id="issueCount" min="1" value="1" required>
@@ -330,8 +334,8 @@
                     <input type="date" id="issueExpiry" required>
                 </div>
                 <div class="form-group animated-item">
-                    <label for="issuePasscode">パスコード (数字5桁):</label>
-                    <input type="password" id="issuePasscode" maxlength="5" pattern="\d{5}" inputmode="numeric" required title="5桁の数字を入力してください">
+                    <label for="issuePasscode">パスコード (数字4桁):</label>
+                    <input type="password" id="issuePasscode" maxlength="4" pattern="\d{4}" inputmode="numeric" required title="4桁の数字を入力してください">
                 </div>
                 <div class="loader-container" id="issueLoader">
                     <div class="loader"></div>
@@ -347,27 +351,28 @@
             <!-- 券を利用するフォーム -->
             <section id="useCouponForm" class="form-section">
                 <h2 class="animated-item">券を利用する</h2>
-                <div class="message-area" id="useFormMessageArea"></div> 
+                <div class="message-area" id="useFormMessageArea"></div> <!-- Message Area for Use Form -->
                 <div class="form-group animated-item">
                     <label for="useSerial">シリアル番号:</label>
                     <input type="text" id="useSerial" required>
                 </div>
                 <div class="form-group animated-item">
-                    <label for="usePasscode">パスコード (数字5桁):</label> <!-- 利用時も5桁を意識させる -->
-                    <input type="password" id="usePasscode" maxlength="5" inputmode="numeric" required title="5桁の数字を入力してください">
+                    <label for="usePasscode">パスコード:</label>
+                    <input type="password" id="usePasscode" required>
                 </div>
                 <div class="loader-container" id="useLoader">
                     <div class="loader"></div>
                 </div>
                 <button id="useCouponBtn" class="action-button animated-item">利用する</button>
+                <!-- <div id="useResultFeedback"> Used to be here, now replaced by useFormMessageArea
+                    <p id="useResultMessage"></p>
+                </div> -->
             </section>
         </main>
+        <!-- Removed #copyFeedback, will use message areas within forms or a global one if preferred -->
     </div>
 
     <script>
-        // --- In-Memory Database ---
-        const couponDatabase = new Map(); // MapオブジェクトをインメモリDBとして使用
-
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
             const showIssueFormBtn = document.getElementById('showIssueFormBtn');
@@ -375,6 +380,7 @@
             const issueCouponForm = document.getElementById('issueCouponForm');
             const useCouponForm = document.getElementById('useCouponForm');
 
+            // Message Areas
             const issueFormMessageArea = document.getElementById('issueFormMessageArea');
             const useFormMessageArea = document.getElementById('useFormMessageArea');
 
@@ -388,10 +394,12 @@
             const copySerialBtn = document.getElementById('copySerialBtn');
 
             const useSerialInput = document.getElementById('useSerial');
-            const usePasscodeInput = document.getElementById('usePasscode'); // 利用時のパスコード入力
+            const usePasscodeInput = document.getElementById('usePasscode');
             const useCouponBtn = document.getElementById('useCouponBtn');
             const useLoader = document.getElementById('useLoader');
-            
+            // const useResultFeedback = document.getElementById('useResultFeedback'); // Removed
+            // const useResultMessage = document.getElementById('useResultMessage'); // Removed
+
             const allRequiredInputs = document.querySelectorAll('input[required]');
 
             // --- Initial Setup ---
@@ -408,9 +416,9 @@
             // --- Functions ---
             function switchForm(activeForm, inactiveForm, activeButton, inactiveButton) {
                 clearAllInputErrors();
-                hideSiteMessage(issueFormMessageArea);
+                hideSiteMessage(issueFormMessageArea); // Hide messages on form switch
                 hideSiteMessage(useFormMessageArea);
-                hideMessage(generatedSerialContainer);
+                hideMessage(generatedSerialContainer); // Hide serial if switching away
 
                 activeForm.classList.add('active-section');
                 inactiveForm.classList.remove('active-section');
@@ -434,7 +442,7 @@
             }
 
             function generateSerialNumber() {
-                return 'KTBK-IM-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
+                return 'KTBK-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 6).toUpperCase();
             }
 
             function showLoader(loaderElement) {
@@ -447,14 +455,14 @@
             
             let messageTimer = null; 
             function showSiteMessage(messageElement, text, type = 'info', duration = 3000) {
-                clearTimeout(messageTimer); 
+                clearTimeout(messageTimer); // Clear any existing timer
 
                 messageElement.textContent = text;
-                messageElement.className = 'message-area'; 
+                messageElement.className = 'message-area'; // Reset classes
                 messageElement.classList.add(`message-${type}`);
                 
-                messageElement.classList.remove('visible'); 
-                void messageElement.offsetWidth; 
+                messageElement.classList.remove('visible'); // For re-triggering animation
+                void messageElement.offsetWidth; // Trigger reflow
                 messageElement.classList.add('visible');
 
                 if (duration > 0) {
@@ -467,9 +475,12 @@
             function hideSiteMessage(messageElement) {
                 clearTimeout(messageTimer);
                 messageElement.classList.remove('visible');
+                // Optional: truly hide after animation if not display:none by default
+                // setTimeout(() => { if(!messageElement.classList.contains('visible')) messageElement.style.display = 'none'; }, 400);
             }
             
-            function displayGeneratedSerial() { 
+            // Wrapper for old displayMessage, now deprecated or specialized
+            function displayGeneratedSerial() { // Specific for serial, uses its own container
                 generatedSerialContainer.classList.remove('visible');
                 void generatedSerialContainer.offsetWidth;
                 generatedSerialContainer.classList.add('visible');
@@ -487,37 +498,26 @@
                 });
             }
             
-            function hideMessage(element) { 
+            function hideMessage(element) { // Generic hide for elements like generatedSerialContainer
                 element.classList.remove('visible');
             }
 
-            // --- Database Functions (In-Memory) ---
+
             function saveCoupon(couponData) {
                 try {
-                    // In-memory: Make a deep copy to store, to avoid direct modification issues
-                    // if the original object is modified elsewhere before another save.
-                    couponDatabase.set(couponData.serialNumber, JSON.parse(JSON.stringify(couponData)));
-                    console.log("Coupon saved to in-memory DB:", couponData.serialNumber, couponDatabase.get(couponData.serialNumber));
+                    localStorage.setItem(couponData.serialNumber, JSON.stringify(couponData));
                     return true;
                 } catch (e) {
-                    console.error("Error saving to in-memory DB", e);
-                    showSiteMessage(issueFormMessageArea, "データベースへの保存に失敗しました。", "error", 5000);
+                    console.error("Error saving to localStorage", e);
+                    showSiteMessage(issueFormMessageArea, "ローカルストレージへの保存に失敗しました。", "error", 5000);
                     return false;
                 }
             }
 
             function getCoupon(serial) {
-                if (couponDatabase.has(serial)) {
-                    // Return a deep copy to prevent accidental modification of the stored object
-                    console.log("Coupon retrieved from in-memory DB:", serial);
-                    return JSON.parse(JSON.stringify(couponDatabase.get(serial)));
-                }
-                console.log("Coupon not found in in-memory DB:", serial);
-                return null;
+                const couponString = localStorage.getItem(serial);
+                return couponString ? JSON.parse(couponString) : null;
             }
-            // No removeCoupon function is explicitly requested, but would be:
-            // function removeCoupon(serial) { couponDatabase.delete(serial); }
-
 
             function validateForm(formElement, messageDisplayElement) {
                 let isValid = true;
@@ -532,8 +532,7 @@
                         if (!firstInvalidElement) firstInvalidElement = input;
                     } else {
                         input.classList.remove('input-error');
-                        // HTML5 pattern validation
-                        if (!input.checkValidity()) { // This will check pattern for passcode
+                        if (!input.checkValidity() && input.id === 'issuePasscode') {
                              input.classList.add('input-error');
                              isValid = false;
                              if (!firstInvalidElement) firstInvalidElement = input;
@@ -544,17 +543,14 @@
                 if (!isValid) {
                     if (firstInvalidElement) firstInvalidElement.focus();
                     let errorMessage = "すべての必須項目を正しく入力してください。";
-                    if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.checkValidity()) {
-                        errorMessage = "パスコードは5桁の数字で入力してください。";
-                    } else if (firstInvalidElement && firstInvalidElement.id === 'usePasscode' && firstInvalidElement.value.length > 0 && firstInvalidElement.value.length < 5) {
-                        // For use form, if something is typed but not 5 digits (though pattern isn't on usePasscode by default)
-                        // We can add a specific check here if needed, or rely on user knowing it's 5 digits.
-                        // For now, the length check for usePasscode is mainly on the server/getCoupon check.
+                    if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.value.trim()) {
+                        // Passcode is empty
+                    } else if (firstInvalidElement && firstInvalidElement.id === 'issuePasscode' && !firstInvalidElement.checkValidity()) {
+                        errorMessage = "パスコードは4桁の数字で入力してください。";
                     }
-
                     showSiteMessage(messageDisplayElement, errorMessage, "error", 3000);
                 } else {
-                    hideSiteMessage(messageDisplayElement); 
+                    hideSiteMessage(messageDisplayElement); // Clear previous error messages if valid
                 }
                 return isValid;
             }
@@ -575,12 +571,10 @@
                         if (input.id === 'issuePasscode' && input.checkValidity()) {
                             input.classList.remove('input-error');
                         }
-                         if (input.id === 'usePasscode' && input.value.length === 5 && /^\d{5}$/.test(input.value) ) { // Basic check for use form
-                            input.classList.remove('input-error');
-                        }
-
+                        // Optionally hide form-specific error message on input
                         if (input.closest('form').id === 'issueCouponForm') hideSiteMessage(issueFormMessageArea);
                         if (input.closest('form').id === 'useCouponForm') hideSiteMessage(useFormMessageArea);
+
                     }
                 });
             });
@@ -596,14 +590,14 @@
             });
 
             issueCouponBtn.addEventListener('click', () => {
-                hideMessage(generatedSerialContainer); 
+                hideMessage(generatedSerialContainer); // Hide previous serial if any
                 if (!validateForm(issueCouponForm, issueFormMessageArea)) {
                     return;
                 }
 
                 const count = parseInt(issueCountInput.value);
                 const expiry = issueExpiryInput.value;
-                const passcode = issuePasscodeInput.value; // Already validated for \d{5} by validateForm
+                const passcode = issuePasscodeInput.value;
                 
                 showLoader(issueLoader);
                 issueCouponBtn.disabled = true;
@@ -617,14 +611,16 @@
 
                     if (saveCoupon(couponData)) {
                         serialNumberDisplay.textContent = serialNumber;
-                        displayGeneratedSerial(); 
+                        displayGeneratedSerial(); // Use specialized function for this
                         showSiteMessage(issueFormMessageArea, "券が正常に発行されました。", "success", 3000);
 
                         issueCountInput.value = "1";
                         issuePasscodeInput.value = "";
                         issueExpiryInput.value = today; 
                         clearFormInputErrors(issueCouponForm);
-                    } 
+                    } else {
+                         // saveCoupon already shows an error via showSiteMessage
+                    }
                     
                     hideLoader(issueLoader);
                     issueCouponBtn.disabled = false;
@@ -659,36 +655,25 @@
             });
 
             useCouponBtn.addEventListener('click', () => {
-                 // For "use" form, passcode field doesn't have a pattern, so manual check might be needed
-                 // if strict 5-digit input is desired before attempting to use.
-                 // validateForm checks for emptiness.
                 if (!validateForm(useCouponForm, useFormMessageArea)) {
+                    // validateForm already shows a message and focuses
                     return;
                 }
-                
+
                 const serial = useSerialInput.value.trim().toUpperCase(); 
-                const passcode = usePasscodeInput.value; // User input for passcode on use form
-
-                // Optional: Add a specific 5-digit check for the usePasscode here if not covered by validateForm's generic check
-                if (!/^\d{5}$/.test(passcode)) {
-                    showSiteMessage(useFormMessageArea, "利用するパスコードは5桁の数字で入力してください。", "error");
-                    usePasscodeInput.classList.add('input-error');
-                    usePasscodeInput.focus();
-                    return;
-                }
-
+                const passcode = usePasscodeInput.value;
 
                 showLoader(useLoader);
                 useCouponBtn.disabled = true;
 
                 setTimeout(() => { 
-                    const coupon = getCoupon(serial); // Uses in-memory DB
+                    const coupon = getCoupon(serial);
 
                     if (!coupon) {
                         showSiteMessage(useFormMessageArea, "指定されたシリアル番号の券は見つかりません。", "error");
                         useSerialInput.classList.add('input-error'); 
                         useSerialInput.focus();
-                    } else if (coupon.passcode !== passcode) { // Passcode is expected to be 5 digits from DB
+                    } else if (coupon.passcode !== passcode) {
                         showSiteMessage(useFormMessageArea, "パスコードが間違っています。", "error");
                         usePasscodeInput.classList.add('input-error'); 
                         usePasscodeInput.focus();
@@ -703,7 +688,7 @@
                             showSiteMessage(useFormMessageArea, "この券は既に使用済みです（残り回数がありません）。", "error");
                         } else {
                             coupon.remainingCount--;
-                            if (saveCoupon(coupon)) { // Updates in-memory DB
+                            if (saveCoupon(coupon)) { // Note: saveCoupon's error message goes to issueFormMessageArea
                                 let message = `肩たたき券を1回利用しました！ 残り回数: ${coupon.remainingCount}回。`;
                                 if (coupon.remainingCount === 0) {
                                     message += " これで全ての回数を利用しました。";
